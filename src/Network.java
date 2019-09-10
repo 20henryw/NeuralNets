@@ -3,6 +3,8 @@
  * 9.4.19
  */
 
+import java.io.*;
+
 /**
  * TODO ADD DOCUMENTATION
  */
@@ -97,6 +99,24 @@ public class Network
       }
 
       return netInput;
+   }
+
+   /**
+    * Loads information from Settings.txt into layers[] and weights[][][]
+    */
+   public void loadSettings() throws IOException {
+      File file = new File("src/Settings.txt");
+      BufferedReader br = new BufferedReader(new FileReader(file));
+
+      String line = br.readLine();
+      if (line.compareTo("LAYERS") != 0) {
+         System.out.println("you done goofed");
+      }
+
+      String test = Integer.toString((br.read()));
+      System.out.println(test);
+
+      br.close();
    }
 
 }

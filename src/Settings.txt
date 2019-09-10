@@ -1,5 +1,2 @@
 LAYERS
 2, 2, 1
-
-WEIGHTS
-random
