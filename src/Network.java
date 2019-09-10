@@ -123,7 +123,15 @@ public class Network
 
       //read in data from weights.csv
       br = new BufferedReader(new FileReader(weightFile));
-      for (int i = 0; i < numLayers - 1; i++);
+      for (int layer = 0; layer < numLayers - 1; layer++) {
+         line = br.readLine();
+         values = line.split(",");
+         for (int i = 0; i < layers[layer]; i++) {
+            for (int j = 0; j < layers[layer + 1]; j++) {
+               weights[layer][i][j] = Double.parseDouble(values[layers[layer]*i + j]);
+            }
+         }
+      }
       br.close();
    }
 
