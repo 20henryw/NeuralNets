@@ -34,18 +34,64 @@ public class Network
 
       System.out.println("pause");
    }
+
+   /**
+    * This function takes inputs and then calculates the state of all the nodes until the final layer's value is
+    * calculated.
+    * @param inputs the inputs corresponding to each node in the input layer
+    * @return an array containing the states of the nodes in the final layer
+    */
    public double[] propagate(double[] inputs) {
-      double[] output = new double[layers[numLayers -1]];
+      double[] netOutput = new double[layers[numLayers -1]];
 
       for (int i = 0; i < inputs.length; i++) {
          activations[0][i] = inputs[i];
       }
 
+      // weights[layer][from][to]. you go from the current layer
       for (int layer = 1; layer < numLayers; layer++) {
-
+         for (int i = 0; i < layers[layer]; i++) {        // the to
+            double[] nodeOutputs = new double[layers[layer -1]];
+            for (int j = 0; j < layers[layer - 1]; j++) { // the from
+               nodeOutputs[j] = outFunc(activations[layer - 1][j], weights[layer - 1][j][i]);
+            }
+            activations[layer][i] = netInputFunc(nodeOutputs);
+         }
       }
-      output[0] = 0;
-      return output;
+
+      //copies output into a new array to prevent pointer errors
+      for (int i = 0; i < layers[numLayers -1]; i++) {
+         netOutput[i] = activations[numLayers - 1][i];
+      }
+
+      return netOutput;
+   }
+
+   /**
+    * Calculates the output function of a node.
+    * Currently multiplies the state and weight together.
+    * @param state the state of the node
+    * @param weight the weight between the current node and the next node
+    * @return the desired output function
+    */
+   private double outFunc(double state, double weight) {
+      return state * weight;
+   }
+
+   /**
+    * Combines the inputs of many nodes into a net input.
+    * Currently adds together all inputs into a net input.
+    * @param inputs all inputs to a node
+    * @return the desired output of the input function.
+    */
+   private double netInputFunc(double[] inputs) {
+      double netInput = 0;
+
+      for (int i = 0; i < inputs.length; i++) {
+         netInput += inputs[i];
+      }
+
+      return netInput;
    }
 
 }
