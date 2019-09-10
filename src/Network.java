@@ -3,6 +3,9 @@
  * 9.4.19
  */
 
+/**
+ * TODO ADD DOCUMENTATION
+ */
 public class Network
 {
    private int[] layers;
@@ -21,8 +24,10 @@ public class Network
       fillWeights();
    }
 
+   /**
+    * Randomly assigns starting weights between -0.5 and 0.5
+    */
    private void fillWeights() {
-
       // numLayers -1 to avoid index out of bound errors, since you don't calculate weights from the output layer
       for (int layer = 0; layer < numLayers - 1; layer++) {
          for (int i = 0; i < layers[layer]; i++) {

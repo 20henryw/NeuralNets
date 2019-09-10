@@ -8,7 +8,7 @@ public class Main {
    public static void main(String[] args) {
 
       Network network = new Network();
-      System.out.println(network.propagate(new double[]{1, 1})[0]);
+      System.out.println(network.propagate(new double[]{1, 0})[0]);
 
    }
 
