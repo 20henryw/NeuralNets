@@ -105,17 +105,25 @@ public class Network
     * Loads information from Settings.txt into layers[] and weights[][][]
     */
    public void loadSettings() throws IOException {
-      File file = new File("src/Settings.txt");
-      BufferedReader br = new BufferedReader(new FileReader(file));
+      File layerFile = new File("data/layers.csv");
+      File weightFile = new File("data/weights.csv");
+      BufferedReader br = new BufferedReader(new FileReader(layerFile));
 
       String line = br.readLine();
-      if (line.compareTo("LAYERS") != 0) {
-         System.out.println("you done goofed");
+
+      String[] values = line.split(",");
+      numLayers = values.length;
+      layers = new int[numLayers];
+      System.out.println(line);
+
+      //read in data from layers.csv
+      for (int i = 0; i < numLayers; i++) {
+         layers[i] = Integer.parseInt(values[i]);
       }
 
-      String test = Integer.toString((br.read()));
-      System.out.println(test);
-
+      //read in data from weights.csv
+      br = new BufferedReader(new FileReader(weightFile));
+      for (int i = 0; i < numLayers - 1; i++);
       br.close();
    }
 
