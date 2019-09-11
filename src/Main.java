@@ -10,9 +10,7 @@ public class Main {
    public static void main(String[] args) throws IOException {
 
       Network network = new Network();
-      //System.out.println(network.propagate(new double[]{1, 0})[0]);
-      network.loadSettings();
-
+      System.out.println(network.propagate()[0]);
    }
 
 }

@@ -4,6 +4,7 @@
 ###layers.csv
 
 ###weights.csv
+For manual input, the first line must contain only the word "random". For random weights between -0.5 and 0.5, change the first line to anything else.  
 Each line in this file represents one layer of the network. Then, values are listed in increasing order of nodes in the layer,  
 with each weight to the following node. For example, for a network with two input nodes and two nodes in the next layer, the  
 weights would be as follows:  
