@@ -66,7 +66,7 @@ public class Network
 
    /**
     * Calculates the output function of a node.
-    * Currently multiplies the state and weight together.
+    * Currently multiplies the activation and weight together.
     * @param state the state of the node
     * @param weight the weight between the current node and the next node
     * @return the desired output function
