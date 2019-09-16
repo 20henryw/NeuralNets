@@ -1,16 +1,26 @@
-import java.io.IOException;
-
 /**
  * Created by Henry Wiese
  * 9.4.19
  */
 
+import java.io.IOException;
+
+/**
+ * The Main class of the project that contains the main method
+ */
 public class Main {
 
+   /**
+    * Creates a network, propogates it, and prints every activation of the output layer.
+    */
    public static void main(String[] args) throws IOException {
 
       Network network = new Network();
-      System.out.println(network.propagate()[0]);
+      double[] out = network.propagate();
+      for (double activation : out) {
+         System.out.println(activation);
+      }
+
    }
 
 }

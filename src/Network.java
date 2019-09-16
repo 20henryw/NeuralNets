@@ -6,7 +6,16 @@
 import java.io.*;
 
 /**
- * TODO ADD DOCUMENTATION
+ * The Network class builds a neural network with an inputted number of layers, nodes, and weights.
+ * It stores the number of nodes in each layer, every activation, and every weight.
+ * All nodes in one layer are connected to all nodes in the next layer. No other connections are made.
+ *
+ *  Network()      - constructs a network object from user specified data
+ *  propagate()    - calculates the activations of each layer, returning an array of the output layer's activations
+ *  outFunc()      - combines the output of a node and weight into one number
+ *  netInputFunc() - combines all inputs into a node into one number
+ *  loadData()     - loads user inputted data into the network
+ *  randWeights()  - loads random weights between -0.5 and 0.5
  */
 public class Network
 {
@@ -150,9 +159,6 @@ public class Network
             }
          }
       }
-
-      System.out.println("pause");
    }
-
 
 }
