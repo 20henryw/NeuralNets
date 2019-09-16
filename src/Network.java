@@ -26,7 +26,8 @@ public class Network
    private double[][][] weights;
    private String INPUT_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/input.csv";
    private String LAYERS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/layers.csv";
-   private String WEIGHTS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/weights.csv";
+   private String WEIGHTS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/weights/xor.csv";
+   private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
 
    public Network() throws IOException {
       loadData();
@@ -92,18 +93,19 @@ public class Network
    }
 
    /**
-    * Loads information from layers.csv into layers[] and weights.csv into weights[][][].
-    * The method first reads layers.csv to determine the number of nodes in each layer and the total number of layers.
-    * It then sets numLayers and MAX_LAYER_SIZE according to the input. The weights array is created based on
-    * numLayers and MAX_LAYER_SIZE. It is then populated randomly or with values in weights.csv based on
-    * the user's choice in weights.csv. More info about correctly using weights.csv is in the readme.
+    * Loads layer information nto layers[] and weights information into weights[][][].
+    * The method first reads the second line of the weight file to determine the number of nodes in each layer
+    * and the total number of layers. It then sets numLayers and MAX_LAYER_SIZE according to the input.
+    * The weights array is created based on numLayers and MAX_LAYER_SIZE. It is then populated randomly
+    * or with values in the weight file based on the user's choice.
+    * More info about correctly using a weight file is in the readme.
     */
    private void loadData() throws IOException {
-      File layerFile = new File(LAYERS_PATH);
       File weightFile = new File(WEIGHTS_PATH);
-      BufferedReader br = new BufferedReader(new FileReader(layerFile));
+      BufferedReader br = new BufferedReader(new FileReader(weightFile));
 
-      String line = br.readLine();
+      String line = br.readLine(); //skip the first line, which is only there to add visual clarity
+      line = br.readLine();
 
       String[] values = line.split(",");
       numLayers = values.length;
@@ -111,7 +113,7 @@ public class Network
 
       int bigLayer = Integer.MIN_VALUE;
 
-      //read in data from layers.csv
+      //read layer data, and determine the largest layer size
       for (int i = 0; i < numLayers; i++) {
          layers[i] = Integer.parseInt(values[i]);
          if (layers[i] > bigLayer)
@@ -122,9 +124,11 @@ public class Network
       activations = new double[numLayers][MAX_LAYER_SIZE];
       weights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];
 
-      //read in data from weights.csv
-      br = new BufferedReader(new FileReader(weightFile));
       line = br.readLine();
+      while (line.compareTo("manual") != 0 && line.compareTo("random") != 0)
+      {
+         line = br.readLine();
+      }
 
       //load manual input
       if (line.compareTo("manual") == 0) {
