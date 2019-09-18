@@ -67,13 +67,14 @@ public class Network
 
    /**
     * Calculates the output function of a node.
-    * Currently multiplies the activation and weight together.
+    * Currently multiplies the activation and weight together, then finds the sigmoid of that
     * @param state the state of the node
     * @param weight the weight between the current node and the next node
     * @return the desired output function
     */
    private double outFunc(double state, double weight) {
-      return state * weight;
+      double dot = state * weight;
+      return (1.0 / (1 + Math.exp(-dot)));
    }
 
    /**
@@ -165,4 +166,55 @@ public class Network
       }
    }
 
+   /**
+    * For a certain number of epochs, train will attempt to reduce the error of an input.
+    * It iterates through every input case and finds the delta weights based on each case's respective target output
+    * Then, the system propogates with the new weights. If the new error is less, lambda, the learning rate will
+    * double. If the new error is more, the activations will be reset to the previous value and lambda
+    * will be divided by 2.
+    * @param maxEpochs the number of times the weights should be trained
+    * @param lambda the initial learning factor
+    */
+   private void train(double[][] inputs, double[] targets, int maxEpochs, int lambda) throws IOException {
+      double[][] prevActivations = new double[numLayers][MAX_LAYER_SIZE];
+      double[][][] deltaWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
+
+      for (int epoch = 0; epoch < maxEpochs; epoch++) {
+         for (int i = 0; i < prevActivations.length; i++) {
+            for (int j = 0; j < prevActivations[i].length; j++) {
+               prevActivations[i][j] = activations[i][j];
+            }
+         }
+
+         for (int i = 0; i < inputs.length; i++) {
+            deltaWeights = getDeltaWeights(inputs[i], targets[i]);
+         }
+
+         for (int layer = 1; layer < numLayers; layer++) {
+            for (int i = 0; i < layers[layer]; i++) {        // the to
+               double[] nodeOutputs = new double[layers[layer -1]];
+               for (int j = 0; j < layers[layer - 1]; j++) { // the from
+                  weights[layer][i][j] += lambda * deltaWeights[layer][i][j];
+               }
+            }
+         }
+
+         propagate();
+
+         //finish checking new propogation error and changing lambda
+
+      }
+
+   }
+
+   /**
+    * Loops over the weights in the hidden layer and calculates deltas,
+    * then loops over the weights in the input layer and calculates deltas.
+    * @param inputs the inputs to the network
+    * @param target the target output of the network
+    */
+   private double[][][] getDeltaWeights(double inputs[], double target) {
+
+
+   }
 }
