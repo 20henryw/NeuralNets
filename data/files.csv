@@ -1,2 +1,6 @@
-/Users/henry/Documents/2019-2020/NeuralNets/data/inputs/xorIn.csv
+WEIGHTS
 /Users/henry/Documents/2019-2020/NeuralNets/data/weights/xor.csv
+INPUTS
+/Users/henry/Documents/2019-2020/NeuralNets/data/inputs/xorIn.csv
+TRAINING VALUES
+/Users/henry/Documents/2019-2020/NeuralNets/data/training/xorTraining.csv

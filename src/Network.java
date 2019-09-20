@@ -24,10 +24,10 @@ public class Network
    private int MAX_LAYER_SIZE;
    private double[][] activations;
    private double[][][] weights;
-   private String INPUT_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/input.csv";
-   private String LAYERS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/layers.csv";
-   private String WEIGHTS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/weights/xor.csv";
    private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
+   private String INPUTS_PATH;
+   private String TRAINING_PATH;
+
    private boolean DEBUG = true;
 
    public Network() throws IOException {
@@ -41,7 +41,7 @@ public class Network
     */
    public double[] propagate() throws IOException {
 
-      File input = new File(INPUT_PATH);
+      File input = new File(INPUTS_PATH);
       BufferedReader br = new BufferedReader(new FileReader(input));
       String line = br.readLine();
       String[] values = line.split(",");
@@ -92,11 +92,21 @@ public class Network
     * More info about correctly using a weight file is in the readme.
     */
    private void loadData() throws IOException {
-      File layerFile = new File(LAYERS_PATH);
-      File weightFile = new File(WEIGHTS_PATH);
-      BufferedReader br = new BufferedReader(new FileReader(layerFile));
+      File files = new File(FILES_PATH);
+      BufferedReader br = new BufferedReader(new FileReader(files));
 
+      //unused lines are only for visual clarity
       String line = br.readLine();
+      String weightPath = br.readLine();
+      line = br.readLine();
+      INPUTS_PATH = br.readLine();
+      line = br.readLine();
+      TRAINING_PATH = br.readLine();
+      br.close();
+
+      br = new BufferedReader(new FileReader(new File(weightPath)));
+      line = br.readLine(); //for visual clarity
+      line = br.readLine();
 
       String[] values = line.split(",");
       numLayers = values.length;
@@ -115,8 +125,8 @@ public class Network
       activations = new double[numLayers][MAX_LAYER_SIZE];
       weights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];
 
-      //read in data from weights.csv
-      br = new BufferedReader(new FileReader(weightFile));
+      //reads in weights
+      line = br.readLine(); //for visual clarity
       line = br.readLine();
 
       //load manual input
