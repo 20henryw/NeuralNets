@@ -28,6 +28,7 @@ public class Network
    private String LAYERS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/layers.csv";
    private String WEIGHTS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/weights/xor.csv";
    private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
+   private boolean DEBUG = true;
 
    public Network() throws IOException {
       loadData();
@@ -53,11 +54,18 @@ public class Network
       // weights[layer][from][to]. you go from the current layer
       for (int layer = 1; layer < numLayers; layer++) {
          for (int i = 0; i < layers[layer]; i++) {        // the to
-            double[] nodeOutputs = new double[layers[layer -1]];
+            double netInput = 0;
+
+            if (DEBUG) System.out.print("DEBUG: a[" + layer + "][" + i + "] = f(");
+
             for (int j = 0; j < layers[layer - 1]; j++) { // the from
-               nodeOutputs[j] = outFunc(activations[layer - 1][j], weights[layer - 1][j][i]);
+               netInput += activations[layer - 1][j] * weights[layer - 1][j][i];
+               if (DEBUG) System.out.print("a[" + (layer - 1) + "][" + j + "]w[" + (layer - 1) + "][" + j + "][" + i + "] + ");
             }
-            activations[layer][i] = netInputFunc(nodeOutputs);
+            if (DEBUG) System.out.println(")");
+
+            activations[layer][i] = outFunc(netInput);
+
          }
       }
 
@@ -67,30 +75,12 @@ public class Network
 
    /**
     * Calculates the output function of a node.
-    * Currently multiplies the activation and weight together, then finds the sigmoid of that
-    * @param state the state of the node
-    * @param weight the weight between the current node and the next node
+    * Currently is the threshold function.
+    * @param x the variable of the function
     * @return the desired output function
     */
-   private double outFunc(double state, double weight) {
-      double dot = state * weight;
-      return (1.0 / (1 + Math.exp(-dot)));
-   }
-
-   /**
-    * Combines the inputs of many nodes into a net input.
-    * Currently adds together all inputs into a net input.
-    * @param inputs all inputs to a node
-    * @return the desired output of the input function.
-    */
-   private double netInputFunc(double[] inputs) {
-      double netInput = 0;
-
-      for (double input : inputs) {
-         netInput += input;
-      }
-
-      return netInput;
+   private double outFunc(double x) {
+      return (1.0 / (1 + Math.exp(-x)));
    }
 
    /**
@@ -102,11 +92,11 @@ public class Network
     * More info about correctly using a weight file is in the readme.
     */
    private void loadData() throws IOException {
+      File layerFile = new File(LAYERS_PATH);
       File weightFile = new File(WEIGHTS_PATH);
-      BufferedReader br = new BufferedReader(new FileReader(weightFile));
+      BufferedReader br = new BufferedReader(new FileReader(layerFile));
 
-      String line = br.readLine(); //skip the first line, which is only there to add visual clarity
-      line = br.readLine();
+      String line = br.readLine();
 
       String[] values = line.split(",");
       numLayers = values.length;
@@ -114,7 +104,7 @@ public class Network
 
       int bigLayer = Integer.MIN_VALUE;
 
-      //read layer data, and determine the largest layer size
+      //read in data from layers.csv
       for (int i = 0; i < numLayers; i++) {
          layers[i] = Integer.parseInt(values[i]);
          if (layers[i] > bigLayer)
@@ -125,11 +115,9 @@ public class Network
       activations = new double[numLayers][MAX_LAYER_SIZE];
       weights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];
 
+      //read in data from weights.csv
+      br = new BufferedReader(new FileReader(weightFile));
       line = br.readLine();
-      while (line.compareTo("manual") != 0 && line.compareTo("random") != 0)
-      {
-         line = br.readLine();
-      }
 
       //load manual input
       if (line.compareTo("manual") == 0) {
@@ -169,22 +157,24 @@ public class Network
    /**
     * For a certain number of epochs, train will attempt to reduce the error of an input.
     * It iterates through every input case and finds the delta weights based on each case's respective target output
-    * Then, the system propogates with the new weights. If the new error is less, lambda, the learning rate will
-    * double. If the new error is more, the activations will be reset to the previous value and lambda
+    * Then, the system propagates with the new weights. If the new error is less, lambda, the learning rate will
+    * double. If the new error is more, the weights will be reset to their previous values and lambda
     * will be divided by 2.
     * @param maxEpochs the number of times the weights should be trained
     * @param lambda the initial learning factor
     */
-   private void train(double[][] inputs, double[] targets, int maxEpochs, int lambda) throws IOException {
-      double[][] prevActivations = new double[numLayers][MAX_LAYER_SIZE];
+   private void train(double[][] inputs, double[][] targets, int maxEpochs, int lambda) throws IOException {
+      double[][][] prevWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
       double[][][] deltaWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
 
-      for (int epoch = 0; epoch < maxEpochs; epoch++) {
-         for (int i = 0; i < prevActivations.length; i++) {
-            for (int j = 0; j < prevActivations[i].length; j++) {
-               prevActivations[i][j] = activations[i][j];
+      for (int layer = 1; layer < numLayers; layer++) {
+         for (int i = 0; i < layers[layer]; i++) {        // the to
+            double[] nodeOutputs = new double[layers[layer -1]];
+            for (int j = 0; j < layers[layer - 1]; j++) { // the from
+               prevWeights[layer][i][j] = weights[layer][i][j];
             }
          }
+      }
 
          for (int i = 0; i < inputs.length; i++) {
             deltaWeights = getDeltaWeights(inputs[i], targets[i]);
@@ -201,9 +191,8 @@ public class Network
 
          propagate();
 
-         //finish checking new propogation error and changing lambda
 
-      }
+         //finish checking new propagation error and changing lambda
 
    }
 
@@ -213,8 +202,15 @@ public class Network
     * @param inputs the inputs to the network
     * @param target the target output of the network
     */
-   private double[][][] getDeltaWeights(double inputs[], double target) {
+   private double[][][] getDeltaWeights(double[] inputs, double[] target) {
 
+      return new double[1][1][1];
 
+   }
+
+   private double getError(double[][] inputs, double[][] target) {
+      double error = 0;
+
+      return error;
    }
 }
