@@ -114,13 +114,13 @@ public class Network
 
       int bigLayer = Integer.MIN_VALUE;
 
-      //read in data from layers.csv
       for (int i = 0; i < numLayers; i++) {
          layers[i] = Integer.parseInt(values[i]);
          if (layers[i] > bigLayer)
             bigLayer = layers[i];
       }
 
+      //TODO: JAGGED ARRAYS BIG POG
       MAX_LAYER_SIZE = bigLayer;
       activations = new double[numLayers][MAX_LAYER_SIZE];
       weights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];
@@ -174,6 +174,8 @@ public class Network
     * @param lambda the initial learning factor
     */
    private void train(double[][] inputs, double[][] targets, int maxEpochs, int lambda) throws IOException {
+      //TODO: READ TRAINING DATA IN FROM THE TRAINING FILE. CONSTRUCT ARRAYS OUT OF THEM, AND PASS VALUES TO getDeltaWeights()
+
       double[][][] prevWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
       double[][][] deltaWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
 
