@@ -11,7 +11,7 @@ import java.io.IOException;
 public class Main {
 
    /**
-    * Creates a network, propogates it, and prints every activation of the output layer.
+    * Creates a network, propagates it, and prints every activation of the output layer.
     */
    public static void main(String[] args) throws IOException {
 

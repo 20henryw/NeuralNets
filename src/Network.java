@@ -13,15 +13,12 @@ import java.io.*;
  *  Network()      - constructs a network object from user specified data
  *  propagate()    - calculates the activations of each layer, returning an array of the output layer's activations
  *  outFunc()      - combines the output of a node and weight into one number
- *  netInputFunc() - combines all inputs into a node into one number
  *  loadData()     - loads user inputted data into the network
  *  randWeights()  - loads random weights between -0.5 and 0.5
  */
 public class Network
 {
-   private int[] layers;
    private int numLayers;
-   private int MAX_LAYER_SIZE;
    private double[][] activations;
    private double[][][] weights;
    private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
@@ -53,18 +50,17 @@ public class Network
 
       // weights[layer][from][to]. you go from the current layer
       for (int layer = 1; layer < numLayers; layer++) {
-         for (int i = 0; i < layers[layer]; i++) {        // the to
+         for (int to = 0; to < weights[layer].length; to++) {        // the to
             double netInput = 0;
+            if (DEBUG) System.out.print("DEBUG: a[" + layer + "][" + to + "] = f(");
 
-            if (DEBUG) System.out.print("DEBUG: a[" + layer + "][" + i + "] = f(");
-
-            for (int j = 0; j < layers[layer - 1]; j++) { // the from
-               netInput += activations[layer - 1][j] * weights[layer - 1][j][i];
-               if (DEBUG) System.out.print("a[" + (layer - 1) + "][" + j + "]w[" + (layer - 1) + "][" + j + "][" + i + "] + ");
+            for (int from = 0; from < weights[layer - 1].length; from++) { // the from
+               netInput += activations[layer - 1][from] * weights[layer - 1][from][to];
+               if (DEBUG) System.out.print("a[" + (layer - 1) + "][" + from + "]w[" + (layer - 1) + "][" + from + "][" + to + "] + ");
             }
             if (DEBUG) System.out.println(")");
 
-            activations[layer][i] = outFunc(netInput);
+            activations[layer][to] = outFunc(netInput);
 
          }
       }
@@ -110,34 +106,35 @@ public class Network
 
       String[] values = line.split(",");
       numLayers = values.length;
-      layers = new int[numLayers];
-
-      int bigLayer = Integer.MIN_VALUE;
+      int[] layers = new int[numLayers];
 
       for (int i = 0; i < numLayers; i++) {
          layers[i] = Integer.parseInt(values[i]);
-         if (layers[i] > bigLayer)
-            bigLayer = layers[i];
       }
 
-      //TODO: JAGGED ARRAYS BIG POG
-      MAX_LAYER_SIZE = bigLayer;
-      activations = new double[numLayers][MAX_LAYER_SIZE];
-      weights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];
+      activations = new double[numLayers][0];
+      for (int i = 0; i < activations.length; i++) {
+         activations[i] = new double[layers[i]];
+      }
+
+      weights = new double[numLayers - 1][][];
+      for (int i = 0; i < weights.length; i++) {
+         weights[i] = new double[layers[i]][layers[i + 1]];
+      }
 
       //reads in weights
       line = br.readLine(); //for visual clarity
       line = br.readLine();
 
-      //load manual input
+      //load manual input.,
       if (line.compareTo("manual") == 0) {
-         for (int layer = 0; layer < numLayers - 1; layer++) {
+         for (int layer = 0; layer < weights.length; layer++) {
             line = br.readLine();
             values = line.split(",");
             int valIndex = 0;
-            for (int i = 0; i < layers[layer]; i++) {
-               for (int j = 0; j < layers[layer + 1]; j++) {
-                  weights[layer][i][j] = Double.parseDouble(values[valIndex]);
+            for (int from = 0; from < weights[layer].length; from++) {
+               for (int to = 0; to < weights[layer][from].length; to++) {
+                  weights[layer][from][to] = Double.parseDouble(values[valIndex]);
                   valIndex++;
                }
             }
@@ -155,9 +152,9 @@ public class Network
     */
    private void randWeights() {
       // numLayers -1 to avoid index out of bound errors, since you don't calculate weights from the output layer
-      for (int layer = 0; layer < numLayers - 1; layer++) {
-         for (int i = 0; i < layers[layer]; i++) {
-            for (int j = 0; j < layers[layer + 1]; j++) {
+      for (int layer = 0; layer < weights.length; layer++) {
+         for (int i = 0; i < weights[layer].length; i++) {
+            for (int j = 0; j < weights[layer][i].length; j++) {
                weights[layer][i][j] = Math.random() - 0.5;
             }
          }
@@ -176,32 +173,6 @@ public class Network
    private void train(double[][] inputs, double[][] targets, int maxEpochs, int lambda) throws IOException {
       //TODO: READ TRAINING DATA IN FROM THE TRAINING FILE. CONSTRUCT ARRAYS OUT OF THEM, AND PASS VALUES TO getDeltaWeights()
 
-      double[][][] prevWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
-      double[][][] deltaWeights = new double[numLayers][MAX_LAYER_SIZE][MAX_LAYER_SIZE];;
-
-      for (int layer = 1; layer < numLayers; layer++) {
-         for (int i = 0; i < layers[layer]; i++) {        // the to
-            double[] nodeOutputs = new double[layers[layer -1]];
-            for (int j = 0; j < layers[layer - 1]; j++) { // the from
-               prevWeights[layer][i][j] = weights[layer][i][j];
-            }
-         }
-      }
-
-         for (int i = 0; i < inputs.length; i++) {
-            deltaWeights = getDeltaWeights(inputs[i], targets[i]);
-         }
-
-         for (int layer = 1; layer < numLayers; layer++) {
-            for (int i = 0; i < layers[layer]; i++) {        // the to
-               double[] nodeOutputs = new double[layers[layer -1]];
-               for (int j = 0; j < layers[layer - 1]; j++) { // the from
-                  weights[layer][i][j] += lambda * deltaWeights[layer][i][j];
-               }
-            }
-         }
-
-         propagate();
 
 
          //finish checking new propagation error and changing lambda
