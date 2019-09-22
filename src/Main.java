@@ -16,10 +16,11 @@ public class Main {
    public static void main(String[] args) throws IOException {
 
       Network network = new Network();
-      double[] out = network.propagate();
-      for (double activation : out) {
-         System.out.println(activation);
-      }
+      network.train(1,1);
+//      double[] out = network.propagate();
+//      for (double activation : out) {
+//         System.out.println(activation);
+//      }
 
    }
 

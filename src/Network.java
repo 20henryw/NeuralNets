@@ -4,6 +4,7 @@
  */
 
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  * The Network class builds a neural network with an inputted number of layers, nodes, and weights.
@@ -50,11 +51,11 @@ public class Network
 
       // weights[layer][from][to]. you go from the current layer
       for (int layer = 1; layer < numLayers; layer++) {
-         for (int to = 0; to < weights[layer].length; to++) {        // the to
+         for (int to = 0; to < activations[layer].length; to++) {
             double netInput = 0;
             if (DEBUG) System.out.print("DEBUG: a[" + layer + "][" + to + "] = f(");
 
-            for (int from = 0; from < weights[layer - 1].length; from++) { // the from
+            for (int from = 0; from < weights[layer - 1].length; from++) {
                netInput += activations[layer - 1][from] * weights[layer - 1][from][to];
                if (DEBUG) System.out.print("a[" + (layer - 1) + "][" + from + "]w[" + (layer - 1) + "][" + from + "][" + to + "] + ");
             }
@@ -112,7 +113,7 @@ public class Network
          layers[i] = Integer.parseInt(values[i]);
       }
 
-      activations = new double[numLayers][0];
+      activations = new double[numLayers][];
       for (int i = 0; i < activations.length; i++) {
          activations[i] = new double[layers[i]];
       }
@@ -153,9 +154,9 @@ public class Network
    private void randWeights() {
       // numLayers -1 to avoid index out of bound errors, since you don't calculate weights from the output layer
       for (int layer = 0; layer < weights.length; layer++) {
-         for (int i = 0; i < weights[layer].length; i++) {
-            for (int j = 0; j < weights[layer][i].length; j++) {
-               weights[layer][i][j] = Math.random() - 0.5;
+         for (int from = 0; from < weights[layer].length; from++) {
+            for (int to = 0; to < weights[layer][from].length; to++) {
+               weights[layer][from][to] = Math.random() - 0.5;
             }
          }
       }
@@ -170,12 +171,39 @@ public class Network
     * @param maxEpochs the number of times the weights should be trained
     * @param lambda the initial learning factor
     */
-   private void train(double[][] inputs, double[][] targets, int maxEpochs, int lambda) throws IOException {
-      //TODO: READ TRAINING DATA IN FROM THE TRAINING FILE. CONSTRUCT ARRAYS OUT OF THEM, AND PASS VALUES TO getDeltaWeights()
+   public void train(int maxEpochs, double lambda) throws IOException {
+      ArrayList<double[]> inputs = new ArrayList<>();
+      ArrayList<double[]> targets = new ArrayList<>();
+      String[] values;
+
+      BufferedReader br = new BufferedReader(new FileReader(new File(TRAINING_PATH)));
+      String line = br.readLine();
+      int count = 0;
+
+      while (line != null && line.compareTo("") != 0) {
+         values = line.split(",");
+         inputs.add(new double[values.length]);
+         for (int i = 0; i < values.length; i++) {
+            System.out.println(Double.parseDouble(values[i]));
+            inputs.get(count)[i] = Double.parseDouble(values[i]);
+         }
+
+         line = br.readLine();
+         values = line.split(",");
+         targets.add(new double[values.length]);
+         for (int i = 0; i < values.length; i++) {
+            targets.get(count)[i] = Double.parseDouble(values[i]);
+         }
+
+         line = br.readLine();
+         count++;
+      }
+      br.close();
 
 
 
-         //finish checking new propagation error and changing lambda
+
+      //finish checking new propagation error and changing lambda
 
    }
 
