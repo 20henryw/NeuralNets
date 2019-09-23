@@ -3,6 +3,8 @@
  * 9.4.19
  */
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+
 import java.io.*;
 import java.util.ArrayList;
 
@@ -33,12 +35,11 @@ public class Network
    }
 
    /**
-    * This function takes inputs and then calculates the state of all the nodes until the final layer's value is
-    * calculated.
-    * @return an array containing the states of the nodes in the final layer
+    * Loads input from the input file and propagates the network.
+    * @return an array containing the activations in the final layer
+    * @throws IOException
     */
-   public double[] propagate() throws IOException {
-
+   public double[] run() throws IOException {
       File input = new File(INPUTS_PATH);
       BufferedReader br = new BufferedReader(new FileReader(input));
       String line = br.readLine();
@@ -48,6 +49,30 @@ public class Network
       for (int i = 0; i < values.length; i++) {
          activations[0][i] = Double.parseDouble(values[i]);
       }
+
+      return propagate();
+   }
+
+   /**
+    * Loads inputs from the parameters and propagates the network.
+    * @param inputs the input layer's values
+    * @return an array containing the activations in the final layer
+    * @throws IOException
+    */
+   public double[] run(double[] inputs) throws IOException {
+      for (int i = 0; i < inputs.length; i++) {
+         activations[0][i] = inputs[i];
+      }
+
+      return propagate();
+   }
+   /**
+    * This function takes inputs and then calculates the state of all the nodes until the final layer's value is
+    * calculated.
+    * @return an array containing the states of the nodes in the final layer
+    */
+   private double[] propagate() throws IOException {
+
 
       // weights[layer][from][to]. you go from the current layer
       for (int layer = 1; layer < numLayers; layer++) {
@@ -79,6 +104,15 @@ public class Network
    private double outFunc(double x) {
       return (1.0 / (1 + Math.exp(-x)));
    }
+
+   /**
+    * Calculates the derivative of the output function
+    * @param x the variable
+    * @return the desired derivative
+    */
+   private double dOutFunc(double x) {
+      return outFunc(x) * (1 - outFunc(x));
+}
 
    /**
     * Loads layer information nto layers[] and weights information into weights[][][].
@@ -168,12 +202,13 @@ public class Network
     * Then, the system propagates with the new weights. If the new error is less, lambda, the learning rate will
     * double. If the new error is more, the weights will be reset to their previous values and lambda
     * will be divided by 2.
+    * )nly works if there is one node in the final layer
     * @param maxEpochs the number of times the weights should be trained
     * @param lambda the initial learning factor
     */
    public void train(int maxEpochs, double lambda) throws IOException {
       ArrayList<double[]> inputs = new ArrayList<>();
-      ArrayList<double[]> targets = new ArrayList<>();
+      ArrayList<Double> targets = new ArrayList<>();
       String[] values;
 
       BufferedReader br = new BufferedReader(new FileReader(new File(TRAINING_PATH)));
@@ -190,17 +225,19 @@ public class Network
 
          line = br.readLine();
          values = line.split(",");
-         targets.add(new double[values.length]);
-         for (int i = 0; i < values.length; i++) {
-            targets.get(count)[i] = Double.parseDouble(values[i]);
-         }
+         targets.add(Double.parseDouble(values[0]));
 
          line = br.readLine();
          count++;
       }
       br.close();
 
-
+      for (int i = 0; i < targets.size(); i++) {
+         for (int j = 0; j < inputs.get(i).length; j++) {
+            getDeltaWeights(propagate()[0], targets.get(i));
+            //TODO: Create run() method that calls propagate. run is overloaded, either taking inputs, or reading from an input file.
+         }
+      }
 
 
       //finish checking new propagation error and changing lambda
@@ -210,18 +247,39 @@ public class Network
    /**
     * Loops over the weights in the hidden layer and calculates deltas,
     * then loops over the weights in the input layer and calculates deltas.
-    * @param inputs the inputs to the network
+    * @param output the inputs to the network
     * @param target the target output of the network
     */
-   private double[][][] getDeltaWeights(double[] inputs, double[] target) {
+   private double[][][] getDeltaWeights(double output, double target) {
+      double[][][] deltaWeights = new double[weights.length][][];
+      double diff = target - output;
 
-      return new double[1][1][1];
+      //final weight layer calculations
+      for (int i = 0; i < weights[1].length; i++) {
+         double dots = 0;
+         for (int j = 0; j < weights[1].length; j++) {
+               dots += activations[1][j] * weights[1][j][0];
+         }
+         deltaWeights[1][i][0] = -diff * dOutFunc(dots) * activations[1][i];
+      }
+      return deltaWeights;
 
    }
 
-   private double getError(double[][] inputs, double[][] target) {
+   /**
+    * Calculates error based on the formula in Design Document 1.
+    * Only works if there is one node in the final layer.
+    * @param outputs The respective outputs for each input
+    * @param targets The respective target values for each input.
+    * @return the error
+    */
+   private double getError(double[] outputs, double[] targets) {
       double error = 0;
 
-      return error;
+      for (int i = 0; i < outputs.length; i++) {
+         error += (outputs[i] - targets[i]) * (outputs[i] - targets[i]);
+      }
+
+      return error / 2;
    }
 }
