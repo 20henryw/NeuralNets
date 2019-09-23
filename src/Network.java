@@ -232,11 +232,13 @@ public class Network
       }
       br.close();
 
+
       for (int i = 0; i < targets.size(); i++) {
-         for (int j = 0; j < inputs.get(i).length; j++) {
-            getDeltaWeights(propagate()[0], targets.get(i));
-            //TODO: Create run() method that calls propagate. run is overloaded, either taking inputs, or reading from an input file.
-         }
+         getDeltaWeights(run(inputs.get(i))[0], targets.get(i));
+
+
+         //TODO: Create run() method that calls propagate. run is overloaded, either taking inputs, or reading from an input file.
+
       }
 
 
@@ -255,15 +257,32 @@ public class Network
       double diff = target - output;
 
       //final weight layer calculations
-      for (int i = 0; i < weights[1].length; i++) {
+      for (int j = 0; j < weights[1].length; j++) {
          double dots = 0;
-         for (int j = 0; j < weights[1].length; j++) {
-               dots += activations[1][j] * weights[1][j][0];
+         for (int J = 0; J < weights[1].length; J++) {
+               dots += activations[1][J] * weights[1][J][0];
          }
-         deltaWeights[1][i][0] = -diff * dOutFunc(dots) * activations[1][i];
+         deltaWeights[1][j][0] = -diff * dOutFunc(dots) * activations[1][j];
       }
-      return deltaWeights;
 
+      // using iterators that match the design doc
+      for (int k = 0; k < weights[0].length; k ++) {
+         for (int j = 0; j < weights[1].length; j++) {
+            double dotsK = 0;
+
+            for (int K = 0; K < weights[0].length; K++) {
+               dotsK += activations[0][K] * weights[0][K][j];
+            }
+
+            double dotsJ = 0;
+            for (int J = 0; J < weights[1].length; J++) {
+               dotsJ += activations[1][J] * weights[1][J][0];
+            }
+            deltaWeights[0][k][j] = -activations[0][k] * dOutFunc(dotsK) * diff * dOutFunc(dotsJ) * weights[1][j][0];
+         }
+      }
+
+      return deltaWeights;
    }
 
    /**
