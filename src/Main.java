@@ -6,7 +6,9 @@
 import java.io.IOException;
 
 /**
- * The Main class of the project that contains the main method
+ * The Main class of the project which ONLY contains the main method.
+ *
+ * All other code pertaining to the network is in Network.java
  */
 public class Main {
 
@@ -16,11 +18,12 @@ public class Main {
    public static void main(String[] args) throws IOException {
 
       Network network = new Network();
-      //network.train(1,1);
-      double[] out = network.run(new double[]{5,-10});
-      for (double activation : out) {
-         System.out.println(activation);
-      }
+      network.train(1000, 1.0);
+
+//      double[] out = network.run();
+//      for (double activation : out) {
+//         System.out.println(activation);
+//      }
 
    }
 

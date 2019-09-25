@@ -7,11 +7,13 @@ import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The Network class builds a neural network with an inputted number of layers, nodes, and weights.
  * It stores the number of nodes in each layer, every activation, and every weight.
  * All nodes in one layer are connected to all nodes in the next layer. No other connections are made.
+ * Building a multi-layer perceptron.
  *
  *  Network()      - constructs a network object from user specified data
  *  propagate()    - calculates the activations of each layer, returning an array of the output layer's activations
@@ -21,14 +23,16 @@ import java.util.ArrayList;
  */
 public class Network
 {
+   private int[] layers;
    private int numLayers;
    private double[][] activations;
    private double[][][] weights;
    private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
    private String INPUTS_PATH;
    private String TRAINING_PATH;
+   private double LAMBDA_FACTOR = 2.0;
 
-   private boolean DEBUG = true;
+   private boolean DEBUG = false;
 
    public Network() throws IOException {
       loadData();
@@ -91,10 +95,11 @@ public class Network
          }
       }
 
+      if (DEBUG) System.out.println("");
+
       //clones output into a new array to prevent pointer errors
       return activations[numLayers - 1].clone();
    }
-
    /**
     * Calculates the output function of a node.
     * Currently is the threshold function.
@@ -141,7 +146,7 @@ public class Network
 
       String[] values = line.split(",");
       numLayers = values.length;
-      int[] layers = new int[numLayers];
+      layers = new int[numLayers];
 
       for (int i = 0; i < numLayers; i++) {
          layers[i] = Integer.parseInt(values[i]);
@@ -152,10 +157,7 @@ public class Network
          activations[i] = new double[layers[i]];
       }
 
-      weights = new double[numLayers - 1][][];
-      for (int i = 0; i < weights.length; i++) {
-         weights[i] = new double[layers[i]][layers[i + 1]];
-      }
+      weights = initializeJaggedArray();
 
       //reads in weights
       line = br.readLine(); //for visual clarity
@@ -219,7 +221,6 @@ public class Network
          values = line.split(",");
          inputs.add(new double[values.length]);
          for (int i = 0; i < values.length; i++) {
-            System.out.println(Double.parseDouble(values[i]));
             inputs.get(count)[i] = Double.parseDouble(values[i]);
          }
 
@@ -232,18 +233,65 @@ public class Network
       }
       br.close();
 
+      int epochs = 0;
+      int lastShift = 0;
+      while (epochs < maxEpochs && lambda != 0)
+      {
 
-      for (int i = 0; i < targets.size(); i++) {
-         getDeltaWeights(run(inputs.get(i))[0], targets.get(i));
+         double prevError = getError(inputs, targets);
+         System.out.println("INIT error: " + prevError);
+
+         double[][][] prevWeights = initializeJaggedArray();
+         for (int layer = 0; layer < weights.length; layer++) {
+            for (int from = 0; from < weights[layer].length; from++) {
+               for (int to = 0; to < weights[layer][from].length; to++) {
+                  prevWeights[layer][from][to] = weights[layer][from][to];
+               }
+            }
+         }
+
+         for (int i = 0; i < targets.size(); i++)
+         {
+            double[][][] deltaWeights = getDeltaWeights(run(inputs.get(i))[0], targets.get(i));
+            //System.out.println("deltas: " + Arrays.deepToString(deltaWeights));
+
+            // add delta weights to weight array. Maybe change gDW to return a new weights array w weights included
+            for (int layer = 0; layer < weights.length; layer++) {
+               for (int from = 0; from < weights[layer].length; from++) {
+                  for (int to = 0; to < weights[layer][from].length; to++) {
+
+                     //- is unnecessary if also removed in formulas in getDeltaWeights
+                     weights[layer][from][to] += -lambda * deltaWeights[layer][from][to];
+                  }
+               }
+            }
+            //System.out.println("test weights: " + Arrays.deepToString(weights));
+         }
 
 
-         //TODO: Create run() method that calls propagate. run is overloaded, either taking inputs, or reading from an input file.
+         // compare to old error, change lambda accordingly
+         double newError = getError(inputs, targets);
+         System.out.println("newError: " + newError);
+         if (newError < prevError)
+         {
+            lastShift = epochs;
+            lambda *= LAMBDA_FACTOR;
+         }
+         else
+         {
+            weights = prevWeights;
+            lambda /= LAMBDA_FACTOR;
+         }
+         System.out.println(lastShift + " " + (newError < prevError));
 
+
+         epochs++;
       }
 
-
-      //finish checking new propagation error and changing lambda
-
+      System.out.println("FINAL lambda: " + lambda);
+      System.out.println("FINAL Error: " + getError(inputs, targets));
+      System.out.println("FINAL Epochs: " + epochs);
+      System.out.println(Arrays.deepToString(weights));
    }
 
    /**
@@ -253,14 +301,16 @@ public class Network
     * @param target the target output of the network
     */
    private double[][][] getDeltaWeights(double output, double target) {
-      double[][][] deltaWeights = new double[weights.length][][];
+      double[][][] deltaWeights = initializeJaggedArray();
       double diff = target - output;
+
 
       //final weight layer calculations
       for (int j = 0; j < weights[1].length; j++) {
          double dots = 0;
+
          for (int J = 0; J < weights[1].length; J++) {
-               dots += activations[1][J] * weights[1][J][0];
+            dots += activations[1][J] * weights[1][J][0];
          }
          deltaWeights[1][j][0] = -diff * dOutFunc(dots) * activations[1][j];
       }
@@ -286,19 +336,45 @@ public class Network
    }
 
    /**
-    * Calculates error based on the formula in Design Document 1.
+    * Calculates error based on the formula in Design Document 1, then takes the sqrt of the errors' squares
     * Only works if there is one node in the final layer.
-    * @param outputs The respective outputs for each input
+    * targets is an ArrayList because that is the data structure used for storing targets in train(), which calls
+    * getError()
+    * @param inputs
     * @param targets The respective target values for each input.
     * @return the error
     */
-   private double getError(double[] outputs, double[] targets) {
+   private double getError(ArrayList<double[]> inputs, ArrayList<Double> targets) throws IOException {
       double error = 0;
-
-      for (int i = 0; i < outputs.length; i++) {
-         error += (outputs[i] - targets[i]) * (outputs[i] - targets[i]);
+      double caseError = 0;
+      double[] outputs = new double[targets.size()];
+      for (int i = 0; i < targets.size(); i++)
+      {
+         outputs[i] = run(inputs.get(i))[0];
       }
 
-      return error / 2;
+      for (int i = 0; i < outputs.length; i++) {
+         double diff =  targets.get(i) - outputs[i];
+         caseError = diff * diff / 2;
+         error += caseError * caseError;
+      }
+
+      return   Math.sqrt(error);
    }
+
+   /**
+    * Creates a jagged weight array based on the number of nodes per layer
+    * @return the jagged array specified by layers[]
+    */
+   private double[][][] initializeJaggedArray()
+   {
+      double[][][] jagged = new double[layers.length - 1][][];
+      for (int i = 0; i < jagged.length; i++)
+      {
+         jagged[i] = new double[layers[i]][layers[i + 1]];
+      }
+
+      return jagged;
+   }
+
 }
