@@ -10,18 +10,21 @@ import java.io.IOException;
  *
  * All other code pertaining to the network is in Network.java
  */
-public class Main {
+public class Main
+{
 
    /**
-    * Creates a network, propagates it, and prints every activation of the output layer.
+    * Creates a network and trains it.
     */
-   public static void main(String[] args) throws IOException {
+   public static void main(String[] args) throws IOException
+   {
 
       Network network = new Network();
-      network.train(1000, 1.0);
+      network.train(10000, .001);
 
 //      double[] out = network.run();
-//      for (double activation : out) {
+//      for (double activation : out)
+//      {
 //         System.out.println(activation);
 //      }
 

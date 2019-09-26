@@ -1,6 +1,11 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
     <codeStyleSettings language="JAVA">
+      <option name="BRACE_STYLE" value="2" />
+      <option name="CLASS_BRACE_STYLE" value="2" />
+      <option name="METHOD_BRACE_STYLE" value="2" />
+      <option name="LAMBDA_BRACE_STYLE" value="2" />
+      <option name="ALIGN_MULTILINE_THROWS_LIST" value="true" />
       <indentOptions>
         <option name="INDENT_SIZE" value="3" />
         <option name="TAB_SIZE" value="3" />

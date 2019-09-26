@@ -1,5 +1,5 @@
-WEIGHTS
-/Users/henry/Documents/2019-2020/NeuralNets/data/weights/xor.csv
+CONFIG
+/Users/henry/Documents/2019-2020/NeuralNets/data/config/xor.csv
 INPUTS
 /Users/henry/Documents/2019-2020/NeuralNets/data/inputs/xorIn.csv
 TRAINING VALUES
