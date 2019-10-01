@@ -28,10 +28,10 @@ public class Network
    private int numLayers;
    private double[][] activations;
    private double[][][] weights;
-   private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
+   private String FILES_PATH = "/Users/Henry/Desktop/NeuralNets/data/files.csv";
    private String INPUTS_PATH;
    private String TRAINING_PATH;
-   private double LAMBDA_FACTOR = 1.001;
+   private double LAMBDA_FACTOR = 1;
 
    private boolean DEBUG = false;
 
@@ -232,10 +232,8 @@ public class Network
     * will be divided by 2.
     * Only works if there is one node in the final layer
     *
-    * @param maxEpochs the number of times the weights should be trained
-    * @param lambda    the initial learning factor
     */
-   public void train(int maxEpochs, double lambda) throws IOException
+   public void train() throws IOException
    {
       ArrayList<double[]> inputs = new ArrayList<>();
       ArrayList<Double> targets = new ArrayList<>();
@@ -243,9 +241,15 @@ public class Network
 
       BufferedReader br = new BufferedReader(new FileReader(new File(TRAINING_PATH)));
       String line = br.readLine();
+
+      values = line.split(",");
+      double lambda = Double.parseDouble(values[0]);
+      int maxEpochs = Integer.parseInt(values[1]);
+      int maxSuperEpochs = Integer.parseInt(values[2]);
       int count = 0;
 
-      //TODO: SUPER EPOCHS 1!!!!!
+      line = br.readLine();
+
       while (line != null && line.compareTo("") != 0)
       {
          values = line.split(",");
@@ -264,14 +268,12 @@ public class Network
       }
       br.close();
 
+      double prevError = getError(inputs, targets);
       int epochs = 0;
       int lastShift = 0;
-      double prevError = getError(inputs, targets);
-
+      //TODO: SUPER EPOCHS 1!!!!!
       while (epochs < maxEpochs && lambda != 0)
       {
-         //System.out.println("INIT error: " + prevError);
-
          double[][][] prevWeights = initializeJaggedArray();
          for (int layer = 0; layer < weights.length; layer++)
          {
@@ -287,7 +289,6 @@ public class Network
          for (int i = 0; i < targets.size(); i++)
          {
             double[][][] deltaWeights = getDeltaWeights(run(inputs.get(i))[0], targets.get(i));
-            //System.out.println("deltas: " + Arrays.deepToString(deltaWeights));
 
             // add delta weights to weight array. Maybe change gDW to return a new weights array w weights included
             for (int layer = 0; layer < weights.length; layer++)
@@ -302,13 +303,10 @@ public class Network
                   }
                }
             }
-            //System.out.println("test weights: " + Arrays.deepToString(weights));
          }
-
 
          // compare to old error, change lambda accordingly
          double newError = getError(inputs, targets);
-         //System.out.println(epochs + " | newError: " + newError + ", prevError: " + prevError);
          if (newError < prevError)
          {
             lastShift = epochs;
@@ -320,7 +318,6 @@ public class Network
             lambda /= LAMBDA_FACTOR;
          }
 
-
          epochs++;
       }
 
@@ -328,6 +325,11 @@ public class Network
       System.out.println("FINAL Error: " + getError(inputs, targets));
       System.out.println("FINAL Epochs: " + epochs);
       System.out.println(Arrays.deepToString(weights));
+
+      for (double input[] : inputs)
+      {
+         System.out.println(input[0] + " " + input[1] + "| " + run(input)[0]);
+      }
    }
 
    /**

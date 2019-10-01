@@ -1,6 +1,8 @@
 CONFIG
-/Users/henry/Documents/2019-2020/NeuralNets/data/config/xor.csv
+/Users/Henry/Desktop/NeuralNets/data/config/config221.csv
 INPUTS
-/Users/henry/Documents/2019-2020/NeuralNets/data/inputs/xorIn.csv
+/Users/Henry/Desktop/NeuralNets/data/inputs/xorIn.csv
 TRAINING VALUES
-/Users/henry/Documents/2019-2020/NeuralNets/data/training/xorTraining.csv
+/Users/Henry/Desktop/NeuralNets/data/training/andTraining.csv
+TRAINING CONSTANTS
+
