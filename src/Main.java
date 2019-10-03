@@ -20,7 +20,7 @@ public class Main
    {
 
       Network network = new Network();
-      network.train();
+      network.train(100000, .001);
 
 //      double[] out = network.run();
 //      for (double activation : out)
