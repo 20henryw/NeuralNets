@@ -3,8 +3,6 @@
  * 9.4.19
  */
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +26,9 @@ public class Network
    private int numLayers;
    private double[][] activations;
    private double[][][] weights;
-   private String FILES_PATH = "/Users/Henry/Desktop/NeuralNets/data/files.csv";
+   private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
    private String INPUTS_PATH;
    private String TRAINING_PATH;
-   private double LAMBDA_FACTOR = 1;
 
    private boolean DEBUG = false;
 
@@ -39,6 +36,12 @@ public class Network
    {
       loadData();
    }
+
+   public double[][][] getWeights()
+   {
+      return weights;
+   }
+
 
    /**
     * Loads input from the input file and propagates the network.
@@ -209,7 +212,7 @@ public class Network
     * Randomly assigns starting weights from a Gaussian distribution.
     * Idea to use a Gaussian was given by Chaitu.
     */
-   private void randWeights()
+   public void randWeights()
    {
       // numLayers -1 to avoid index out of bound errors, since you don't calculate weights from the output layer
       for (int layer = 0; layer < weights.length; layer++)
@@ -233,46 +236,13 @@ public class Network
     * Only works if there is one node in the final layer
     *
     */
-   public void train() throws IOException
+   public void train(ArrayList<double[]> inputs, ArrayList<Double> targets, double lambda, int MAX_EPOCHS,
+                     double lambdaFactor, double MIN_LAMBDA, double ERROR_THRESHOLD) throws IOException
    {
-      ArrayList<double[]> inputs = new ArrayList<>();
-      ArrayList<Double> targets = new ArrayList<>();
-      String[] values;
-
-      BufferedReader br = new BufferedReader(new FileReader(new File(TRAINING_PATH)));
-      String line = br.readLine();
-
-      values = line.split(",");
-      double lambda = Double.parseDouble(values[0]);
-      int maxEpochs = Integer.parseInt(values[1]);
-      int maxSuperEpochs = Integer.parseInt(values[2]);
-      int count = 0;
-
-      line = br.readLine();
-
-      while (line != null && line.compareTo("") != 0)
-      {
-         values = line.split(",");
-         inputs.add(new double[values.length]);
-         for (int i = 0; i < values.length; i++)
-         {
-            inputs.get(count)[i] = Double.parseDouble(values[i]);
-         }
-
-         line = br.readLine();
-         values = line.split(",");
-         targets.add(Double.parseDouble(values[0]));
-
-         line = br.readLine();
-         count++;
-      }
-      br.close();
-
       double prevError = getError(inputs, targets);
       int epochs = 0;
       int lastShift = 0;
-      //TODO: SUPER EPOCHS 1!!!!!
-      while (epochs < maxEpochs && lambda != 0)
+      while (epochs < MAX_EPOCHS && lambda != 0)
       {
          double[][][] prevWeights = initializeJaggedArray();
          for (int layer = 0; layer < weights.length; layer++)
@@ -310,26 +280,21 @@ public class Network
          if (newError < prevError)
          {
             lastShift = epochs;
-            lambda *= LAMBDA_FACTOR;
+            lambda *= lambdaFactor;
             prevError = newError;
          } else
          {
             weights = prevWeights;
-            lambda /= LAMBDA_FACTOR;
+            lambda /= lambdaFactor;
          }
 
          epochs++;
       }
 
-      System.out.println("FINAL lambda: " + lambda);
+      //System.out.println("FINAL lambda: " + lambda);
       System.out.println("FINAL Error: " + getError(inputs, targets));
-      System.out.println("FINAL Epochs: " + epochs);
-      System.out.println(Arrays.deepToString(weights));
-
-      for (double input[] : inputs)
-      {
-         System.out.println(input[0] + " " + input[1] + "| " + run(input)[0]);
-      }
+      //System.out.println("FINAL Epochs: " + epochs);
+      //System.out.println(Arrays.deepToString(weights));
    }
 
    /**
@@ -391,7 +356,7 @@ public class Network
     * @param targets The respective target values for each input.
     * @return the error
     */
-   private double getError(ArrayList<double[]> inputs, ArrayList<Double> targets) throws IOException
+   public double getError(ArrayList<double[]> inputs, ArrayList<Double> targets) throws IOException
    {
       double error = 0;
       double caseError = 0;

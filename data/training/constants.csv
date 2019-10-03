@@ -8,3 +8,7 @@ MIN LAMBDA
 0
 ERROR THRESHOLD
 0
+SUPER EPOCHS
+10
+TRAINING FILE PATH
+/Users/henry/Documents/2019-2020/NeuralNets/data/training/andTraining.csv

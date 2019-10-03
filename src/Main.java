@@ -20,7 +20,9 @@ public class Main
    {
 
       Network network = new Network();
-      network.train(100000, .001);
+      Minimizer mini = new Minimizer(network);
+      mini.minimize();
+//      network.train();
 
 //      double[] out = network.run();
 //      for (double activation : out)
