@@ -25,7 +25,7 @@ public class Network
    private int[] layers;
    private int numLayers;
    private double[][] activations;
-   private double[][][] weights;
+   private double[][][] weights; // [layer][from][to]
    private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
    private String INPUTS_PATH;
    private String TRAINING_PATH;
@@ -134,7 +134,8 @@ public class Network
     */
    private double dOutFunc(double x)
    {
-      return outFunc(x) * (1 - outFunc(x));
+      double f = outFunc(x);
+      return f * (1 - f);
    }
 
    /**
@@ -236,43 +237,20 @@ public class Network
     * Only works if there is one node in the final layer
     *
     */
-   public void train(ArrayList<double[]> inputs, ArrayList<Double> targets, double lambda, int MAX_EPOCHS,
+   public void train(ArrayList<double[]> inputs, ArrayList<double[]> targets, double lambda, int MAX_EPOCHS,
                      double lambdaFactor, double MIN_LAMBDA, double ERROR_THRESHOLD) throws IOException
    {
+      double[][][] prevWeights = initializeJaggedArray();
       double prevError = getError(inputs, targets);
       int epochs = 0;
       int lastShift = 0;
       while (epochs < MAX_EPOCHS && lambda != 0)
       {
-         double[][][] prevWeights = initializeJaggedArray();
-         for (int layer = 0; layer < weights.length; layer++)
-         {
-            for (int from = 0; from < weights[layer].length; from++)
-            {
-               for (int to = 0; to < weights[layer][from].length; to++)
-               {
-                  prevWeights[layer][from][to] = weights[layer][from][to];
-               }
-            }
-         }
+         prevWeights = weights;
 
          for (int i = 0; i < targets.size(); i++)
          {
-            double[][][] deltaWeights = getDeltaWeights(run(inputs.get(i))[0], targets.get(i));
-
-            // add delta weights to weight array. Maybe change gDW to return a new weights array w weights included
-            for (int layer = 0; layer < weights.length; layer++)
-            {
-               for (int from = 0; from < weights[layer].length; from++)
-               {
-                  for (int to = 0; to < weights[layer][from].length; to++)
-                  {
-
-                     //- is unnecessary if also removed in formulas in getDeltaWeights
-                     weights[layer][from][to] += -lambda * deltaWeights[layer][from][to];
-                  }
-               }
-            }
+            weights = optimizeWeights(run(inputs.get(i)), targets.get(i), lambdaFactor);
          }
 
          // compare to old error, change lambda accordingly
@@ -347,6 +325,66 @@ public class Network
    }
 
    /**
+    * Method title inspired by Kyle Li.
+    * @param outputs
+    * @param targets
+    * @return
+    */
+   private double[][][] optimizeWeights(double[] outputs, double[] targets, double lambdaFactor)
+   {
+      double[][][] newWeights = initializeJaggedArray();
+      double diff;
+      double dotsJ;
+      double dotsK;
+      double sumI;
+      double dDotsK_sumI;
+
+      for (int i = 0; i < outputs.length; i++)
+      {
+         diff = targets[i] - outputs[i];
+         for (int j = 0; j < weights[1].length; j++)
+         {
+            dotsJ = 0;
+            for (int J = 0; J < weights[1].length; J++)
+            {
+               dotsJ += activations[1][J] * weights[1][J][i];
+            }
+            newWeights[1][j][i] = weights[1][j][i] + lambdaFactor * diff * dOutFunc(dotsJ) * activations[1][j];
+         }
+      }
+
+      for (int j = 0; j < weights[1].length; j++)
+      {
+         dotsK = 0;
+         for (int K = 0; K < weights[0].length; K++)
+         {
+            dotsK = activations[0][K] * weights[0][K][j];
+         }
+
+         sumI = 0;
+         for (int I = 0; I < outputs.length; I++)
+         {
+            dotsJ = 0;
+            for (int J = 0; J < weights[1].length; J++)
+            {
+               dotsJ += activations[1][J] * weights[1][J][I];
+            }
+
+            sumI += (targets[I] - outputs[I]) * dOutFunc(dotsJ) * weights[1][j][I];
+         }
+
+         dDotsK_sumI = dOutFunc(dotsK) * sumI;
+         for (int k = 0; k < weights[0].length; k++)
+         {
+            newWeights[0][k][j] = weights[0][k][j] + lambdaFactor * activations[0][k] * dDotsK_sumI;
+         }
+      }
+
+
+      return newWeights;
+   }
+
+   /**
     * Calculates error based on the formula in Design Document 1, then takes the sqrt of the errors' squares
     * Only works if there is one node in the final layer.
     * targets is an ArrayList because that is the data structure used for storing targets in train(), which calls
@@ -356,20 +394,27 @@ public class Network
     * @param targets The respective target values for each input.
     * @return the error
     */
-   public double getError(ArrayList<double[]> inputs, ArrayList<Double> targets) throws IOException
+   public double getError(ArrayList<double[]> inputs, ArrayList<double[]> targets) throws IOException
    {
-      double error = 0;
+      double diff;
+      double nodeError;
       double caseError = 0;
-      double[] outputs = new double[targets.size()];
+      double error = 0;
+      double[][] outputs = new double[targets.size()][targets.get(0).length];
+      double[] finLayer;
+      double[] caseTargets;
+
       for (int i = 0; i < targets.size(); i++)
       {
-         outputs[i] = run(inputs.get(i))[0];
-      }
-
-      for (int i = 0; i < outputs.length; i++)
-      {
-         double diff = targets.get(i) - outputs[i];
-         caseError = diff * diff / 2;
+         finLayer = run(inputs.get(i));
+         caseTargets = targets.get(i);
+         caseError = 0;
+         for (int j = 0; j < caseTargets.length; j++)
+         {
+            diff = caseTargets[j] - finLayer[j];
+            nodeError = diff * diff;
+            caseError += nodeError * nodeError / 2;
+         }
          error += caseError * caseError;
       }
 

@@ -5,6 +5,7 @@
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * This class contains methods that help load training constants and train a network.
@@ -22,7 +23,7 @@ public class Minimizer
    private String CONSTANTS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/training/constants.csv";
    private String TRAINING_PATH;
    ArrayList<double[]> inputs = new ArrayList<>();
-   ArrayList<Double> targets = new ArrayList<>();
+   ArrayList<double[]> targets = new ArrayList<>();
    String[] values;
 
 
@@ -30,7 +31,6 @@ public class Minimizer
    {
       this.network = network;
       loadConstants();
-      System.out.print("");
    }
 
    private void loadConstants() throws IOException
@@ -70,7 +70,12 @@ public class Minimizer
 
          line = br.readLine();
          values = line.split(",");
-         targets.add(Double.parseDouble(values[0]));
+         targets.add(new double[values.length]);
+         for (int i = 0; i < values.length; i++)
+         {
+            targets.get(count)[i] = Double.parseDouble(values[i]);
+         }
+
 
          line = br.readLine();
          count++;
@@ -96,7 +101,7 @@ public class Minimizer
       System.out.println("\nMIN ERROR: " + minError);
       for (double input[] : inputs)
       {
-         System.out.println(input[0] + " " + input[1] + "| " + network.run(input)[0]);
+         System.out.println(Arrays.toString(network.run(input)));
       }
 
    }
