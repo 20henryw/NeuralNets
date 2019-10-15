@@ -1,9 +1,9 @@
 INITIAL LAMBDA
-.5
+.001
 MAX EPOCHS
-200000
+100000
 LAMBDA CHANGE FACTOR
-.5
+1.001
 MIN LAMBDA
 0
 ERROR THRESHOLD
@@ -11,4 +11,4 @@ ERROR THRESHOLD
 SUPER EPOCHS
 10
 TRAINING FILE PATH
-/Users/henry/Documents/2019-2020/NeuralNets/data/training/xorTraining.csv
+/Users/henry/Documents/2019-2020/NeuralNets/data/training/multiTraining.csv

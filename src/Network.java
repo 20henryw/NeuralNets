@@ -241,7 +241,7 @@ public class Network
                      double lambdaFactor, double MIN_LAMBDA, double ERROR_THRESHOLD) throws IOException
    {
       double[][][] prevWeights = initializeJaggedArray();
-      double prevError = getError(inputs, targets);
+      double prevError = 0;
       int epochs = 0;
       int lastShift = 0;
       while (epochs < MAX_EPOCHS && lambda != 0)
@@ -250,21 +250,25 @@ public class Network
 
          for (int i = 0; i < targets.size(); i++)
          {
+            prevError = getCaseError(inputs.get(i), targets.get(i));
+
             weights = optimizeWeights(run(inputs.get(i)), targets.get(i), lambdaFactor);
+
+            double newError = getCaseError(inputs.get(i), targets.get(i));
+            if (newError < prevError)
+            {
+               lastShift = epochs;
+               lambda *= lambdaFactor;
+               prevError = newError;
+            } else
+            {
+               weights = prevWeights;
+               lambda /= lambdaFactor;
+            }
+
          }
 
          // compare to old error, change lambda accordingly
-         double newError = getError(inputs, targets);
-         if (newError < prevError)
-         {
-            lastShift = epochs;
-            lambda *= lambdaFactor;
-            prevError = newError;
-         } else
-         {
-            weights = prevWeights;
-            lambda /= lambdaFactor;
-         }
 
          epochs++;
       }
@@ -339,20 +343,43 @@ public class Network
       double sumI;
       double dDotsK_sumI;
 
-      for (int i = 0; i < outputs.length; i++)
+      diff = targets[0] - outputs[0];
+      for (int j = 0; j < weights[1].length; j++)
       {
-         diff = targets[i] - outputs[i];
-         for (int j = 0; j < weights[1].length; j++)
+         dotsJ = 0;
+         for (int J = 0; J < weights[1].length; J++)
          {
-            dotsJ = 0;
-            for (int J = 0; J < weights[1].length; J++)
-            {
-               dotsJ += activations[1][J] * weights[1][J][i];
-            }
-            newWeights[1][j][i] = weights[1][j][i] + lambdaFactor * diff * dOutFunc(dotsJ) * activations[1][j];
+            dotsJ += activations[1][J] * weights[1][J][0];
+         }
+         newWeights[1][j][0] = weights[1][j][0] + lambdaFactor * diff * dOutFunc(dotsJ) * activations[1][j];
+      }
+
+      for (int j = 0; j < weights[1].length; j++)
+      {
+         dotsK = 0;
+
+         for (int K = 0; K < weights[0].length; K++)
+         {
+            dotsK += activations[0][K] * weights[0][K][j];
+         }
+
+         dotsJ = 0;
+         for (int J = 0; J < weights[1].length; J++)
+         {
+            dotsJ += activations[1][J] * weights[1][J][0];
+         }
+
+         double preSum = dOutFunc(dotsK) * diff * dOutFunc(dotsJ) * weights[1][j][0];
+
+         for (int k = 0; k < weights[0].length; k++)
+         {
+            newWeights[0][k][j] = weights[0][k][j] + activations[0][k] * preSum;
          }
       }
 
+
+
+      /**
       for (int j = 0; j < weights[1].length; j++)
       {
          dotsK = 0;
@@ -379,7 +406,7 @@ public class Network
             newWeights[0][k][j] = weights[0][k][j] + lambdaFactor * activations[0][k] * dDotsK_sumI;
          }
       }
-
+      */
 
       return newWeights;
    }
@@ -404,12 +431,13 @@ public class Network
       double[] finLayer;
       double[] caseTargets;
 
+
       for (int i = 0; i < targets.size(); i++)
       {
          finLayer = run(inputs.get(i));
          caseTargets = targets.get(i);
          caseError = 0;
-         for (int j = 0; j < caseTargets.length; j++)
+         for (int j = 0; j < caseTargets.length; j++) //0 0 0 1
          {
             diff = caseTargets[j] - finLayer[j];
             nodeError = diff * diff;
@@ -421,6 +449,27 @@ public class Network
       return Math.sqrt(error);
    }
 
+   /**
+    * Calculates Error based of description in Design Doc 2
+    * @param input
+    * @param target
+    * @return
+    * @throws IOException
+    */
+   public double getCaseError(double[] input, double[] target) throws IOException
+   {
+      double[] finLayer = run(input);
+      double diff;
+      double error = 0;
+
+      for (int i = 0; i < target.length; i++)
+      {
+         diff = target[i] - finLayer[i];
+         error += diff * diff;
+      }
+
+      return Math.sqrt(error) / 2;
+   }
    /**
     * Creates a jagged weight array based on the number of nodes per layer
     *
