@@ -30,7 +30,7 @@ public class Network
    private String INPUTS_PATH;
    private String TRAINING_PATH;
 
-   private boolean DEBUG = true;
+   private boolean DEBUG = false;
 
    public Network() throws IOException
    {
@@ -105,6 +105,7 @@ public class Network
             }
             if (DEBUG) System.out.println(")");
 
+            double debugTemp = netInput;
             activations[layer][to] = outFunc(netInput);
          }
       }
@@ -343,15 +344,18 @@ public class Network
       double sumI;
       double dDotsK_sumI;
 
-      diff = targets[0] - outputs[0];
-      for (int j = 0; j < weights[1].length; j++)
+      for (int i = 0; i < outputs.length; i++)
       {
-         dotsJ = 0;
-         for (int J = 0; J < weights[1].length; J++)
+         diff = targets[i] - outputs[i];
+         for (int j = 0; j < weights[1].length; j++)
          {
-            dotsJ += activations[1][J] * weights[1][J][0];
+            dotsJ = 0;
+            for (int J = 0; J < weights[1].length; J++)
+            {
+               dotsJ += activations[1][J] * weights[1][J][i];
+            }
+            newWeights[1][j][i] = weights[1][j][i] + lambdaFactor * diff * dOutFunc(dotsJ) * activations[1][j];
          }
-         newWeights[1][j][0] = weights[1][j][0] + lambdaFactor * diff * dOutFunc(dotsJ) * activations[1][j];
       }
 
       for (int j = 0; j < weights[1].length; j++)
