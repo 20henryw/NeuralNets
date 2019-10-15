@@ -30,7 +30,7 @@ public class Network
    private String INPUTS_PATH;
    private String TRAINING_PATH;
 
-   private boolean DEBUG = false;
+   private boolean DEBUG = true;
 
    public Network() throws IOException
    {
@@ -357,35 +357,9 @@ public class Network
       for (int j = 0; j < weights[1].length; j++)
       {
          dotsK = 0;
-
          for (int K = 0; K < weights[0].length; K++)
          {
             dotsK += activations[0][K] * weights[0][K][j];
-         }
-
-         dotsJ = 0;
-         for (int J = 0; J < weights[1].length; J++)
-         {
-            dotsJ += activations[1][J] * weights[1][J][0];
-         }
-
-         double preSum = dOutFunc(dotsK) * diff * dOutFunc(dotsJ) * weights[1][j][0];
-
-         for (int k = 0; k < weights[0].length; k++)
-         {
-            newWeights[0][k][j] = weights[0][k][j] + activations[0][k] * preSum;
-         }
-      }
-
-
-
-      /**
-      for (int j = 0; j < weights[1].length; j++)
-      {
-         dotsK = 0;
-         for (int K = 0; K < weights[0].length; K++)
-         {
-            dotsK = activations[0][K] * weights[0][K][j];
          }
 
          sumI = 0;
@@ -406,7 +380,7 @@ public class Network
             newWeights[0][k][j] = weights[0][k][j] + lambdaFactor * activations[0][k] * dDotsK_sumI;
          }
       }
-      */
+
 
       return newWeights;
    }

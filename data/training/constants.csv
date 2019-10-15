@@ -9,6 +9,6 @@ MIN LAMBDA
 ERROR THRESHOLD
 0
 SUPER EPOCHS
-10
+2
 TRAINING FILE PATH
 /Users/henry/Documents/2019-2020/NeuralNets/data/training/multiTraining.csv
