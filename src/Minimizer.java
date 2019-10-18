@@ -10,6 +10,9 @@ import java.util.Arrays;
 /**
  * This class contains methods that help load training constants and train a network.
  *
+ * Minimizer()     - constructs a Minimizer
+ * loadConstants() - loads training constants relevant toward training
+ * minimize()      - trains the network based on the training constants
  */
 public class Minimizer
 {
@@ -27,12 +30,21 @@ public class Minimizer
    String[] values;
 
 
+   /**
+    * Creates a Minimizer that can be used to train networks
+    * @param network the network to be trained
+    * @throws IOException
+    */
    public Minimizer(Network network) throws IOException
    {
       this.network = network;
       loadConstants();
    }
 
+   /**
+    * Loads constants relevant to minimizing the network.
+    * @throws IOException
+    */
    private void loadConstants() throws IOException
    {
       File files = new File(CONSTANTS_PATH);
@@ -84,17 +96,34 @@ public class Minimizer
 
    }
 
+   /**
+    * Minimizes the error of a network by training the network for a number of super epochs.
+    * A super epoch is an attempt to train the network with a random set of initial weights.
+    * It prints the error of every Super Epoch.
+    * It prints the smallest error returned of all the super epochs, runs the neural network with that
+    * super epochs's weights, and prints the values in the final layer.
+    *
+    * @throws IOException
+    */
    public void minimize() throws IOException
    {
       double minError = Double.MAX_VALUE;
+      String bestEndCondition = "";
+      double epochError = 0;
+      String epochEndCondition = "";
+
+
       for (int i = 0; i < SUPER_EPOCHS; i++)
       {
          network.randWeights();
-         network.train(inputs, targets, lambda, MAX_EPOCHS, lambdaFactor, MIN_LAMBDA, ERROR_THRESHOLD);
-         double epochError = network.getError(inputs, targets);
+         epochEndCondition = network.train(inputs, targets, lambda, MAX_EPOCHS, lambdaFactor, MIN_LAMBDA, ERROR_THRESHOLD);
+         epochError = network.getError(inputs, targets);
+         System.out.println("SUPER EPOCH ERROR: " + epochError);
+
          if (epochError < minError)
          {
             minError = epochError;
+            bestEndCondition = epochEndCondition;
          }
       }
 
@@ -103,6 +132,8 @@ public class Minimizer
       {
          System.out.println(Arrays.toString(network.run(input)));
       }
+
+      System.out.println("\n" + bestEndCondition);
 
    }
 }

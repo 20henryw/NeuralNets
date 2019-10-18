@@ -13,12 +13,21 @@ import java.util.Random;
  * It stores the number of nodes in each layer, every activation, and every weight.
  * All nodes in one layer are connected to all nodes in the next layer. No other connections are made.
  * Building a multi-layer perceptron.
- * <p>
- * Network()      - constructs a network object from user specified data
- * propagate()    - calculates the activations of each layer, returning an array of the output layer's activations
- * outFunc()      - combines the output of a node and weight into one number
- * loadData()     - loads user inputted data into the network
- * randWeights()  - loads random weights between -0.5 and 0.5
+ *
+ * Network()         - constructs a network object from user specified data
+ * getWeights()      - returns the weights array
+ * run()             - calls propagate with specified inputs
+ * propagate()       - calculates the activations of each layer, returning an array of the output layer's activations
+ * outFunc()         - calculates the result of a specified function
+ * dOutFunc()        - calculates the derivative of the output function
+ * loadData()        - loads user inputted data into the network
+ * randWeights()     - loads random weights between -0.5 and 0.5
+ * train()           - optimizes weights until end conditions are satisfied
+ * optimizeWeights() - optimizes the weight array for one instance
+ * getCaseError()    - gets the error of one case of inputs and outputs
+ * getError()        - gets the error of multiple cases
+ * initializeJaggedArray() - initializes a jagged array based on the network's layer structure
+ *
  */
 public class Network
 {
@@ -26,7 +35,7 @@ public class Network
    private int numLayers;
    private double[][] activations;
    private double[][][] weights; // [layer][from][to]
-   private String FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
+   private String FILES_PATH;
    private String INPUTS_PATH;
    private String TRAINING_PATH;
 
@@ -34,6 +43,13 @@ public class Network
 
    public Network() throws IOException
    {
+      FILES_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/files.csv";
+      loadData();
+   }
+
+   public Network(String FILES_PATH) throws IOException
+   {
+      this.FILES_PATH = FILES_PATH;
       loadData();
    }
 
@@ -124,7 +140,7 @@ public class Network
     */
    private double outFunc(double x)
    {
-      return (1.0 / (1 + Math.exp(-x)));
+      return (1.0 / (1.0 + Math.exp(-x)));
    }
 
    /**
@@ -136,7 +152,7 @@ public class Network
    private double dOutFunc(double x)
    {
       double f = outFunc(x);
-      return f * (1 - f);
+      return f * (1.0 - f);
    }
 
    /**
@@ -238,14 +254,17 @@ public class Network
     * Only works if there is one node in the final layer
     *
     */
-   public void train(ArrayList<double[]> inputs, ArrayList<double[]> targets, double lambda, int MAX_EPOCHS,
+   public String train(ArrayList<double[]> inputs, ArrayList<double[]> targets, double lambda, int MAX_EPOCHS,
                      double lambdaFactor, double MIN_LAMBDA, double ERROR_THRESHOLD) throws IOException
    {
+      int endCondition = 0;
+      String endString = "";
       double[][][] prevWeights = initializeJaggedArray();
       double prevError = 0;
       int epochs = 0;
       int lastShift = 0;
-      while (epochs < MAX_EPOCHS && lambda != 0)
+
+      while (endCondition == 0)
       {
          prevWeights = weights;
 
@@ -269,68 +288,42 @@ public class Network
 
          }
 
-         // compare to old error, change lambda accordingly
-
          epochs++;
+
+         if (epochs >= MAX_EPOCHS)
+         {
+            endCondition = 1;
+            endString += "ENDED on epochs.";
+         }
+         else if (lambda < MIN_LAMBDA)
+         {
+            endCondition = 2;
+            endString += "ENDED on lambda value.";
+         }
+         else if (getError(inputs, targets) < ERROR_THRESHOLD)
+         {
+            endCondition = 3;
+            endString += "ENDED on error.";
+         }
       }
 
       //System.out.println("FINAL lambda: " + lambda);
-      System.out.println("FINAL Error: " + getError(inputs, targets));
+      //System.out.println("FINAL Error: " + getError(inputs, targets));
       //System.out.println("FINAL Epochs: " + epochs);
       //System.out.println(Arrays.deepToString(weights));
+
+      endString += "\nEpochs: " + epochs + "\nLambdas: " + lambda + "\nError: " + getError(inputs, targets);
+      return endString;
    }
 
-   /**
-    * Loops over the weights in the hidden layer and calculates deltas,
-    * then loops over the weights in the input layer and calculates deltas.
-    *
-    * @param output the inputs to the network
-    * @param target the target output of the network
-    */
-   private double[][][] getDeltaWeights(double output, double target)
-   {
-      double[][][] deltaWeights = initializeJaggedArray();
-      double diff = target - output;
-
-
-      //final weight layer calculations
-      for (int j = 0; j < weights[1].length; j++)
-      {
-         double dots = 0;
-
-         for (int J = 0; J < weights[1].length; J++)
-         {
-            dots += activations[1][J] * weights[1][J][0];
-         }
-         deltaWeights[1][j][0] = -diff * dOutFunc(dots) * activations[1][j];
-      }
-
-      // using iterators that match the design doc
-      for (int k = 0; k < weights[0].length; k++)
-      {
-         for (int j = 0; j < weights[1].length; j++)
-         {
-            double dotsK = 0;
-
-            for (int K = 0; K < weights[0].length; K++)
-            {
-               dotsK += activations[0][K] * weights[0][K][j];
-            }
-
-            double dotsJ = 0;
-            for (int J = 0; J < weights[1].length; J++)
-            {
-               dotsJ += activations[1][J] * weights[1][J][0];
-            }
-            deltaWeights[0][k][j] = -activations[0][k] * dOutFunc(dotsK) * diff * dOutFunc(dotsJ) * weights[1][j][0];
-         }
-      }
-
-      return deltaWeights;
-   }
 
    /**
     * Method title inspired by Kyle Li.
+    *
+    * Loops over the weights in the hidden layer and the input layer, calculates deltas,
+    * and adds them to the weight array.
+    * Iterator names follow the conventions in the Design Documents.
+    *
     * @param outputs
     * @param targets
     * @return
@@ -378,6 +371,7 @@ public class Network
             sumI += (targets[I] - outputs[I]) * dOutFunc(dotsJ) * weights[1][j][I];
          }
 
+         // This variable name is reflected in my version of the design doc.
          dDotsK_sumI = dOutFunc(dotsK) * sumI;
          for (int k = 0; k < weights[0].length; k++)
          {
@@ -387,44 +381,6 @@ public class Network
 
 
       return newWeights;
-   }
-
-   /**
-    * Calculates error based on the formula in Design Document 1, then takes the sqrt of the errors' squares
-    * Only works if there is one node in the final layer.
-    * targets is an ArrayList because that is the data structure used for storing targets in train(), which calls
-    * getError()
-    *
-    * @param inputs
-    * @param targets The respective target values for each input.
-    * @return the error
-    */
-   public double getError(ArrayList<double[]> inputs, ArrayList<double[]> targets) throws IOException
-   {
-      double diff;
-      double nodeError;
-      double caseError = 0;
-      double error = 0;
-      double[][] outputs = new double[targets.size()][targets.get(0).length];
-      double[] finLayer;
-      double[] caseTargets;
-
-
-      for (int i = 0; i < targets.size(); i++)
-      {
-         finLayer = run(inputs.get(i));
-         caseTargets = targets.get(i);
-         caseError = 0;
-         for (int j = 0; j < caseTargets.length; j++) //0 0 0 1
-         {
-            diff = caseTargets[j] - finLayer[j];
-            nodeError = diff * diff;
-            caseError += nodeError * nodeError / 2;
-         }
-         error += caseError * caseError;
-      }
-
-      return Math.sqrt(error);
    }
 
    /**
@@ -446,8 +402,33 @@ public class Network
          error += diff * diff;
       }
 
-      return Math.sqrt(error) / 2;
+      return Math.sqrt(error) / 2.0;
    }
+
+   /**
+    * Calculates error based on the formula in Design Document 1, then takes the sqrt of the errors' squares
+    * Only works if there is one node in the final layer.
+    * targets is an ArrayList because that is the data structure used for storing targets in train(), which calls
+    * getError()
+    *
+    * @param inputs
+    * @param targets The respective target values for each input.
+    * @return the error
+    */
+   public double getError(ArrayList<double[]> inputs, ArrayList<double[]> targets) throws IOException
+   {
+      double error = 0;
+      double caseError = 0;
+
+      for (int i = 0; i < inputs.size(); i++)
+      {
+         caseError = getCaseError(inputs.get(i), targets.get(i));
+         error += caseError * caseError;
+      }
+
+      return Math.sqrt(error);
+   }
+
    /**
     * Creates a jagged weight array based on the number of nodes per layer
     *
