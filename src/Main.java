@@ -29,16 +29,10 @@ public class Main
 
       Network network = new Network(filepath);
 
-      Minimizer mini = new Minimizer(network);
-      mini.minimize();
-
-//      network.train();
-
-//      double[] out = network.run();
-//      for (double activation : out)
-//      {
-//         System.out.println(activation);
-//      }
+      ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
+      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
+//      Minimizer mini = new Minimizer(network);
+//      mini.minimize();
 
    }
 
