@@ -2,6 +2,10 @@
  * Created on 10.24.19 by Henry Wiese
  */
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /**
  *
  */
@@ -30,4 +34,39 @@ public class ImageWrapper
          }
       }
    }
+
+   /**
+    * Writes the array to a training file in the format used by my project.
+    * @param outFilePath File path to the new file that will contain the training data
+    * @throws IOException
+    */
+   public void createTrainingFile(String outFilePath) throws IOException
+   {
+      BufferedWriter writer = new BufferedWriter(new FileWriter(outFilePath));
+      String outString = "";
+      int max = 0;
+
+      int height = imageArray.length;
+      for (int i = 0; i < height; i++)
+      {
+         for (int j = 0; j < imageArray[i].length; j++)
+         {
+            if (imageArray[i][j] > max)
+            {
+               max = imageArray[i][j];
+            }
+            outString += imageArray[i][j] + ",";
+         }
+      }
+
+      outString = outString.substring(0, outString.length() - 1);
+      writer.write(outString + "\n");
+      writer.write(outString);
+      writer.close();
+
+
+      System.out.println(max);
+      System.out.printf("%08x ", max);
+   }
+
 }

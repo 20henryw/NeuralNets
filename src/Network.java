@@ -38,6 +38,7 @@ public class Network
    private String FILES_PATH;
    private String INPUTS_PATH;
    private String TRAINING_PATH;
+   private double scale;
 
    private boolean DEBUG = false;
 
@@ -52,6 +53,8 @@ public class Network
       this.FILES_PATH = FILES_PATH;
       loadData();
    }
+
+
 
    public double[][][] getWeights()
    {
@@ -156,7 +159,7 @@ public class Network
    }
 
    /**
-    * Loads layer information nto layers[] and weights information into weights[][][].
+    * Loads layer information into layers[] and weights information into weights[][][].
     * The method first reads the second line of the weight file to determine the number of nodes in each layer
     * and the total number of layers. It then sets numLayers and MAX_LAYER_SIZE according to the input.
     * The weights array is created based on numLayers and MAX_LAYER_SIZE. It is then populated randomly
@@ -196,6 +199,11 @@ public class Network
          activations[i] = new double[layers[i]];
       }
 
+      line = br.readLine(); //for visual clarity
+      line = br.readLine();
+      values = line.split(",");
+      scale = Double.parseDouble(values[0]);
+
       weights = initializeJaggedArray();
 
       line = br.readLine(); //for visual clarity
@@ -222,6 +230,7 @@ public class Network
       {  //user wants random input
          randWeights();
       }
+
 
       br.close();
    }
