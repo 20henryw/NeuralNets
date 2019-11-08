@@ -54,13 +54,15 @@ public class Network
       loadData();
    }
 
-
-
    public double[][][] getWeights()
    {
       return weights;
    }
 
+   public void setWeights(double[][][] weights)
+   {
+      this.weights = weights;
+   }
 
    /**
     * Loads input from the input file and propagates the network.
@@ -109,6 +111,11 @@ public class Network
     */
    private double[] propagate() throws IOException
    {
+      for (int i = 0; i < activations[0].length; i++)
+      {
+         activations[0][i] /= scale;
+      }
+
       for (int layer = 1; layer < numLayers; layer++)
       {
          for (int to = 0; to < activations[layer].length; to++)
@@ -130,6 +137,11 @@ public class Network
       }
 
       if (DEBUG) System.out.println("");
+
+      for (int i = 0; i < activations[numLayers - 1].length; i++)
+      {
+         activations[numLayers - 1][i] *= scale;
+      }
 
       return activations[numLayers - 1];
    }
@@ -199,14 +211,12 @@ public class Network
          activations[i] = new double[layers[i]];
       }
 
-      line = br.readLine(); //for visual clarity
       line = br.readLine();
       values = line.split(",");
       scale = Double.parseDouble(values[0]);
 
       weights = initializeJaggedArray();
 
-      line = br.readLine(); //for visual clarity
       line = br.readLine();
 
       //load manual input

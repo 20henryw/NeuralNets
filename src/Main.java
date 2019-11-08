@@ -4,6 +4,7 @@
  */
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * The Main class of the project which ONLY contains the main method.
@@ -27,13 +28,15 @@ public class Main
          filepath = args[0];
       }
 
-      Network network = new Network(filepath);
+      Network network = new Network(filepath); //TODO: TAKES FOREVER TO CREATE THE NETWORK, WHY?
+      System.out.println("hi");
 
       ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
-      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/bmpTraining.csv");
-      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
-//      Minimizer mini = new Minimizer(network);
-//      mini.minimize();
+//      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/bmpTraining.csv");
+//      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
+
+      Minimizer mini = new Minimizer(network);
+      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/minimizeOut.bmp", mini.minimize());
 
    }
 

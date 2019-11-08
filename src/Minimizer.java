@@ -105,8 +105,9 @@ public class Minimizer
     *
     * @throws IOException
     */
-   public void minimize() throws IOException
+   public double[][][] minimize() throws IOException
    {
+      System.out.println("minimize");
       double minError = Double.MAX_VALUE;
       String bestEndCondition = "";
       double epochError = 0;
@@ -135,5 +136,14 @@ public class Minimizer
 
       System.out.println("\n" + bestEndCondition);
 
+      return network.getWeights();
+   }
+
+   public void toTestBMP(String outFilePath, double[][][] weights) throws IOException
+   {
+      ImageWrapper testWrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
+      network.setWeights(weights);
+      double[] output = network.run(inputs.get(0));
+      testWrapper.toBMP(outFilePath);
    }
 }
