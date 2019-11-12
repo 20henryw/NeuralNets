@@ -16,6 +16,14 @@ public class ImageWrapper
    public ImageWrapper(String imagePath)
    {
       imageArray = DibDump.bmpToArray(imagePath);
+      int height = imageArray.length;
+      for (int i = 0; i < height; i++)
+      {
+         for (int j = 0; j < imageArray[i].length; j++)
+         {
+            imageArray[i][j] &= 0x00FFFFFF;
+         }
+      }
    }
 
    public void toBMP(String outFileName)
@@ -30,7 +38,7 @@ public class ImageWrapper
       {
          for (int j = 0; j < imageArray[i].length; j++)
          {
-            imageArray[i][j] = (int) pels[i * height + j];
+            imageArray[i][j] = (int) (pels[i * height + j]);
          }
       }
    }
@@ -55,7 +63,7 @@ public class ImageWrapper
             {
                max = imageArray[i][j];
             }
-            outString += imageArray[i][j] + ",";
+            outString += (imageArray[i][j] / 2e24) + ",";
          }
       }
 
@@ -64,9 +72,6 @@ public class ImageWrapper
       writer.write(outString);
       writer.close();
 
-
-      System.out.println(max);
-      System.out.printf("%08x ", max);
    }
 
 }

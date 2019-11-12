@@ -349,6 +349,7 @@ public class Network
     */
    private double[][][] optimizeWeights(double[] outputs, double[] targets, double lambdaFactor)
    {
+      long startTime = System.currentTimeMillis();
       double[][][] newWeights = initializeJaggedArray();
       double diff;
       double dotsJ;
@@ -413,7 +414,7 @@ public class Network
    {
       double[] finLayer = run(input);
       double diff;
-      double error = 0;
+      double error = 0.0;
 
       for (int i = 0; i < target.length; i++)
       {
@@ -436,8 +437,8 @@ public class Network
     */
    public double getError(ArrayList<double[]> inputs, ArrayList<double[]> targets) throws IOException
    {
-      double error = 0;
-      double caseError = 0;
+      double error = 0.0;
+      double caseError = 0.0;
 
       for (int i = 0; i < inputs.size(); i++)
       {

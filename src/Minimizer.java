@@ -116,8 +116,12 @@ public class Minimizer
 
       for (int i = 0; i < SUPER_EPOCHS; i++)
       {
+         System.out.println("start randweights");
          network.randWeights();
+         System.out.println("start training");
          epochEndCondition = network.train(inputs, targets, lambda, MAX_EPOCHS, lambdaFactor, MIN_LAMBDA, ERROR_THRESHOLD);
+         System.out.println(epochEndCondition);
+         System.out.println("start get error");
          epochError = network.getError(inputs, targets);
          System.out.println("SUPER EPOCH ERROR: " + epochError);
 
@@ -141,9 +145,15 @@ public class Minimizer
 
    public void toTestBMP(String outFilePath, double[][][] weights) throws IOException
    {
-      ImageWrapper testWrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
+      System.out.println("\n");
+      ImageWrapper testWrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
       network.setWeights(weights);
       double[] output = network.run(inputs.get(0));
+      for (int i = 0; i < output.length; i++)
+      {
+         output[i] *= 2e24;
+      }
+      testWrapper.setImageArray(output);
       testWrapper.toBMP(outFilePath);
    }
 }

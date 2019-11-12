@@ -226,11 +226,7 @@ public class DibDump
  *
  */
 
-      /**
-       *
-       * @param args
-       * @return
-       */
+
    public static int[][] bmpToArray(String imagepath)
       {
       String inFileName, outFileName;
@@ -285,13 +281,14 @@ bfOffBits
          bmpFileHeader_bfReserved1 = dibdumper.swapShort(in.readUnsignedShort());    // WORD
          bmpFileHeader_bfReserved2 = dibdumper.swapShort(in.readUnsignedShort());    // WORD
          bmpFileHeader_bfOffBits   = dibdumper.swapInt(in.readInt());                // DWORD
-
+/**
          System.out.printf("bfType=%2X bfSize=%d bfReserved1=%h bfReserved2=%h bfOffBits=%d\n",
                            bmpFileHeader_bfType,
                            bmpFileHeader_bfSize,
                            bmpFileHeader_bfReserved1,
                            bmpFileHeader_bfReserved2,
                            bmpFileHeader_bfOffBits);
+*/
 
 /*
  Read in BITMAPINFOHEADER
@@ -402,6 +399,7 @@ pColor = ((LPSTR)pBitmapInfo + (WORD)(pBitmapInfo->bmiHeader.biSize));
          bmpInfoHeader_biClrUsed       = dibdumper.swapInt(in.readInt());              // DWORD
          bmpInfoHeader_biClrImportant  = dibdumper.swapInt(in.readInt());              // DWORD
 
+            /**
          System.out.printf("biSize=%d\nbiWidth=%d\nbiHeight=%d\nbiPlanes=%d\nbiBitCount=%d\nbiCompression=%d\nbiSizeImage=%d\nbiXPelsPerMeter=%d\nbiYPelsPerMeter=%d\nbiClrUsed=%d\nbiClrImportant=%d\n",
                     bmpInfoHeader_biSize,
                     bmpInfoHeader_biWidth,
@@ -416,6 +414,7 @@ pColor = ((LPSTR)pBitmapInfo + (WORD)(pBitmapInfo->bmiHeader.biSize));
                     bmpInfoHeader_biClrImportant);
 
          System.out.printf("\n");
+*/
 
 // Since we use the height to crate arrays, it cannot have a negative a value. If the height field is
 // less than zero, then make it positive and set the topDownDIB flag to TRUE so we know that the image is

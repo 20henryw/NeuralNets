@@ -28,16 +28,16 @@ public class Main
          filepath = args[0];
       }
 
-      Network network = new Network(filepath); //TODO: TAKES FOREVER TO CREATE THE NETWORK, WHY?
+      Network network = new Network(filepath);
       System.out.println("hi");
 
-      ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
-//      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/bmpTraining.csv");
-//      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
+      ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
+      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/bmpTraining.csv");
+      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
 
       Minimizer mini = new Minimizer(network);
       mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/minimizeOut.bmp", mini.minimize());
-
+      //TODO: WHITE OUTPUT IMAGE BIG SAD
    }
 
 }
