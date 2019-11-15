@@ -243,8 +243,9 @@ public class Network
          {
             for (int to = 0; to < weights[layer][from].length; to++)
             {
-               weights[layer][from][to] = new Random().nextGaussian();
+//               weights[layer][from][to] = new Random().nextGaussian();
 //               weights[layer][from][to] = 0;
+               weights[layer][from][to] = (Math.random() - 0.5) / 10.0;
             }
          }
       }
@@ -285,6 +286,7 @@ public class Network
                lastShift = epochs;
                lambda *= lambdaFactor;
                prevError = newError;
+               prevWeights = weights;
             } else
             {
                weights = prevWeights;
@@ -408,7 +410,8 @@ public class Network
          error += diff * diff;
       }
 
-      return Math.sqrt(error) / 2.0;
+      return error / 2.0;
+//      return Math.sqrt(error) / 2.0;
    }
 
    /**
