@@ -17,13 +17,17 @@ public class ImageWrapper
    {
       imageArray = DibDump.bmpToArray(imagePath);
       int height = imageArray.length;
+      int max = 0;
       for (int i = 0; i < height; i++)
       {
          for (int j = 0; j < imageArray[i].length; j++)
          {
             imageArray[i][j] &= 0x00FFFFFF;
+            if (imageArray[i][j] > max) max = imageArray[i][j];
          }
       }
+
+      System.out.printf("%08x ", max);
    }
 
    public void toBMP(String outFileName)
@@ -63,7 +67,7 @@ public class ImageWrapper
             {
                max = imageArray[i][j];
             }
-            outString += (imageArray[i][j] / 2e24) + ",";
+            outString += (imageArray[i][j] / 16777216.0) + ",";
          }
       }
 

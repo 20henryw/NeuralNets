@@ -107,21 +107,19 @@ public class Minimizer
     */
    public double[][][] minimize() throws IOException
    {
-      System.out.println("minimize");
+      System.out.println("\nminimize");
       double minError = Double.MAX_VALUE;
       String bestEndCondition = "";
       double epochError = 0;
       String epochEndCondition = "";
+      double[][][] bestWeights = new double[1][1][1];
 
 
       for (int i = 0; i < SUPER_EPOCHS; i++)
       {
-         System.out.println("start randweights");
          network.randWeights();
-         System.out.println("start training");
          epochEndCondition = network.train(inputs, targets, lambda, MAX_EPOCHS, lambdaFactor, MIN_LAMBDA, ERROR_THRESHOLD);
-         System.out.println(epochEndCondition);
-         System.out.println("start get error");
+         System.out.println("\n" + epochEndCondition);
          epochError = network.getError(inputs, targets);
          System.out.println("SUPER EPOCH ERROR: " + epochError);
 
@@ -129,18 +127,21 @@ public class Minimizer
          {
             minError = epochError;
             bestEndCondition = epochEndCondition;
+            bestWeights = network.getWeights();
          }
       }
 
       System.out.println("\nMIN ERROR: " + minError);
-      for (double input[] : inputs)
+      network.setWeights(bestWeights);
+      for (int i = 0; i < inputs.size(); i++)
       {
-         System.out.println(Arrays.toString(network.run(input)));
+         System.out.println(Arrays.toString(network.run(inputs.get(i))));
+         System.out.println(Arrays.toString(targets.get(i)));
       }
 
       System.out.println("\n" + bestEndCondition);
 
-      return network.getWeights();
+      return bestWeights;
    }
 
    public void toTestBMP(String outFilePath, double[][][] weights) throws IOException
@@ -149,11 +150,12 @@ public class Minimizer
       ImageWrapper testWrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
       network.setWeights(weights);
       double[] output = network.run(inputs.get(0));
+      double[] scaledOutput = new double[output.length];
       for (int i = 0; i < output.length; i++)
       {
-         output[i] *= 2e24;
+         scaledOutput[i] = output[i] * 16777216.0;
       }
-      testWrapper.setImageArray(output);
+      testWrapper.setImageArray(scaledOutput);
       testWrapper.toBMP(outFilePath);
    }
 }

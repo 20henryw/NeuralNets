@@ -455,7 +455,7 @@ typedef RGBQUAD FAR* LPRGBQUAD;
                numberOfColors = 0; // no color table
             }
 
-         System.out.printf("Color Depth = %d, %d\n", bmpInfoHeader_biBitCount, numberOfColors);
+//         System.out.printf("Color Depth = %d, %d\n", bmpInfoHeader_biBitCount, numberOfColors);
 /*
 * biClrUsed -  Specifies the number of color indexes in the color table that are actually used by the bitmap.
 *     If this value is zero, the bitmap uses the maximum number of colors corresponding to the value of the biBitCount member for the compression mode specified by biCompression.
@@ -745,9 +745,9 @@ typedef RGBQUAD FAR* LPRGBQUAD;
             {
             for (j = 0; j < iBytesPerRow; ++j)         // j is now just the column counter
                {
-               System.out.printf("%06X\t", imageArray[i][j]);
+               //System.out.printf("%06X\t", imageArray[i][j]);
                }
-            System.out.printf("\n");
+//            System.out.printf("\n");
             }
          }
 

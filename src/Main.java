@@ -36,7 +36,8 @@ public class Main
       wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
 
       Minimizer mini = new Minimizer(network);
-      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/minimizeOut.bmp", mini.minimize());
+      mini.minimize();
+//      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/minimizeOut.bmp", mini.minimize());
       //TODO: WHITE OUTPUT IMAGE BIG SAD
    }
 

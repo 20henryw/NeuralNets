@@ -38,7 +38,6 @@ public class Network
    private String FILES_PATH;
    private String INPUTS_PATH;
    private String TRAINING_PATH;
-   private double scale;
 
    private boolean DEBUG = false;
 
@@ -111,10 +110,6 @@ public class Network
     */
    private double[] propagate() throws IOException
    {
-      for (int i = 0; i < activations[0].length; i++)
-      {
-         activations[0][i] /= scale;
-      }
 
       for (int layer = 1; layer < numLayers; layer++)
       {
@@ -137,11 +132,6 @@ public class Network
       }
 
       if (DEBUG) System.out.println("");
-
-      for (int i = 0; i < activations[numLayers - 1].length; i++)
-      {
-         activations[numLayers - 1][i] *= scale;
-      }
 
       return activations[numLayers - 1];
    }
@@ -188,8 +178,6 @@ public class Network
       String weightPath = br.readLine();
       line = br.readLine();
       INPUTS_PATH = br.readLine();
-      line = br.readLine();
-      TRAINING_PATH = br.readLine();
       br.close();
 
       br = new BufferedReader(new FileReader(new File(weightPath)));
@@ -211,9 +199,6 @@ public class Network
          activations[i] = new double[layers[i]];
       }
 
-      line = br.readLine();
-      values = line.split(",");
-      scale = Double.parseDouble(values[0]);
 
       weights = initializeJaggedArray();
 
@@ -259,6 +244,7 @@ public class Network
             for (int to = 0; to < weights[layer][from].length; to++)
             {
                weights[layer][from][to] = new Random().nextGaussian();
+//               weights[layer][from][to] = 0;
             }
          }
       }
@@ -331,7 +317,7 @@ public class Network
       //System.out.println("FINAL Epochs: " + epochs);
       //System.out.println(Arrays.deepToString(weights));
 
-      endString += "\nEpochs: " + epochs + "\nLambdas: " + lambda + "\nError: " + getError(inputs, targets);
+      endString += "\nEpochs: " + epochs + "\nLambda: " + lambda + "\nError: " + getError(inputs, targets);
       return endString;
    }
 
