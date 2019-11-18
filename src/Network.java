@@ -261,18 +261,24 @@ public class Network
     *
     */
    public String train(ArrayList<double[]> inputs, ArrayList<double[]> targets, double lambda, int MAX_EPOCHS,
-                     double lambdaFactor, double MIN_LAMBDA, double ERROR_THRESHOLD) throws IOException
+                     double lambdaFactor, double MIN_LAMBDA, double ERROR_THRESHOLD, int NUM_PRINTS) throws IOException
    {
       int endCondition = 0;
       String endString = "";
       double[][][] prevWeights = initializeJaggedArray();
       double prevError = 0;
       int epochs = 0;
+      int printFactor = MAX_EPOCHS / NUM_PRINTS;
       int lastShift = 0;
 
       while (endCondition == 0)
       {
          prevWeights = weights;
+
+         if((epochs % printFactor) == 0)
+         {
+            System.out.println("Epoch " + epochs + ": " + prevError);
+         }
 
          for (int i = 0; i < targets.size(); i++)
          {
