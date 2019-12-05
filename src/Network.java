@@ -34,6 +34,9 @@ public class Network
    private int[] layers;
    private int numLayers;
    private double[][] activations;
+   private double[][] theta;
+   private double[][] omega;
+   private double[][] psi;
    private double[][][] weights; // [layer][from][to]
    private String FILES_PATH;
    private String INPUTS_PATH;
@@ -194,9 +197,16 @@ public class Network
       }
 
       activations = new double[numLayers][];
+      theta = new double[numLayers][];
+      omega = new double[numLayers][];
+      psi = new double[numLayers][];
+
       for (int i = 0; i < activations.length; i++)
       {
          activations[i] = new double[layers[i]];
+         theta[i] = new double[layers[i]];
+         omega[i] = new double[layers[i]];
+         psi[i] = new double[layers[i]];
       }
 
 
@@ -244,8 +254,8 @@ public class Network
             for (int to = 0; to < weights[layer][from].length; to++)
             {
 //               weights[layer][from][to] = new Random().nextGaussian();
-//               weights[layer][from][to] = 0;
-               weights[layer][from][to] = (Math.random() - 0.5) / 10.0;
+               weights[layer][from][to] = (Math.random() - 0.5) / 5;
+//               weights[layer][from][to] = (Math.random() * 2) - 1;
             }
          }
       }
@@ -283,10 +293,12 @@ public class Network
          for (int i = 0; i < targets.size(); i++)
          {
             prevError = getCaseError(inputs.get(i), targets.get(i));
+//            prevError = getChaituError(inputs, targets);
 
             weights = optimizeWeights(run(inputs.get(i)), targets.get(i), lambdaFactor);
 
             double newError = getCaseError(inputs.get(i), targets.get(i));
+//            double newError = getChaituError(inputs, targets);
             if (newError < prevError)
             {
                lastShift = epochs;
@@ -308,7 +320,7 @@ public class Network
             endCondition = 1;
             endString += "ENDED on epochs.";
          }
-         else if (lambda < MIN_LAMBDA)
+         else if (lambda <= MIN_LAMBDA)
          {
             endCondition = 2;
             endString += "ENDED on lambda value.";
@@ -345,54 +357,52 @@ public class Network
    {
       long startTime = System.currentTimeMillis();
       double[][][] newWeights = initializeJaggedArray();
+      double[][] theta = new double[activations.length][activations[0].length];
       double diff;
       double dotsJ;
       double dotsK;
       double sumI;
       double dDotsK_sumI;
 
-      for (int i = 0; i < outputs.length; i++)
+      for (int layer = 1; layer < numLayers; layer++)
       {
-         diff = targets[i] - outputs[i];
-         for (int j = 0; j < weights[1].length; j++)
+         for (int to = 0; to < activations[layer].length; to++)
          {
-            dotsJ = 0;
-            for (int J = 0; J < weights[1].length; J++)
+            theta[layer][to] = 0;
+            for (int from = 0; from < weights[layer - 1].length; from++)
             {
-               dotsJ += activations[1][J] * weights[1][J][i];
+               theta[layer][to] += activations[layer - 1][from] * weights[layer - 1][from][to];
             }
-            newWeights[1][j][i] = weights[1][j][i] + lambdaFactor * diff * dOutFunc(dotsJ) * activations[1][j];
+
+            activations[layer][to] = outFunc(theta[layer][to]);
          }
       }
 
-      for (int j = 0; j < weights[1].length; j++)
+      for (int i = 0; i < activations[numLayers - 1].length; i++)
       {
-         dotsK = 0;
-         for (int K = 0; K < weights[0].length; K++)
-         {
-            dotsK += activations[0][K] * weights[0][K][j];
-         }
+         omega[numLayers - 1][i] = targets[i] - activations[numLayers - 1][i];
+         psi[numLayers - 1][i] = omega[numLayers - 1][i] * dOutFunc(theta[numLayers - 1][i]);
 
-         sumI = 0;
-         for (int I = 0; I < outputs.length; I++)
+         for (int j = 0; j < activations[numLayers - 2].length; j++)
          {
-            dotsJ = 0;
-            for (int J = 0; J < weights[1].length; J++)
-            {
-               dotsJ += activations[1][J] * weights[1][J][I];
-            }
-
-            sumI += (targets[I] - outputs[I]) * dOutFunc(dotsJ) * weights[1][j][I];
-         }
-
-         // This variable name is reflected in my version of the design doc.
-         dDotsK_sumI = dOutFunc(dotsK) * sumI;
-         for (int k = 0; k < weights[0].length; k++)
-         {
-            newWeights[0][k][j] = weights[0][k][j] + lambdaFactor * activations[0][k] * dDotsK_sumI;
+            newWeights[numLayers - 2][j][i] = weights[numLayers - 2][j][i] + lambdaFactor * activations[numLayers - 2][j] * psi[numLayers - 1][i];
          }
       }
 
+      for (int j = 0; j < activations[numLayers - 2].length; j++)
+      {
+         omega[numLayers - 2][j] = 0;
+         for (int I = 0; I < activations[numLayers - 1].length; I++)
+         {
+            omega[numLayers - 2][j] += psi[numLayers - 1][I] * weights[numLayers - 2][j][I];
+         }
+
+         psi[numLayers - 2][j] = omega[numLayers - 2][j] * dOutFunc(theta[numLayers - 2][j]);
+         for (int k = 0; k < activations[numLayers - 3].length; k++)
+         {
+            newWeights[numLayers - 3][k][j] = weights[numLayers - 3][k][j] + lambdaFactor * activations[numLayers - 3][k] * psi[numLayers - 2][j];
+         }
+      }
 
       return newWeights;
    }
@@ -442,6 +452,24 @@ public class Network
       }
 
       return Math.sqrt(error);
+   }
+
+   public double getChaituError(ArrayList<double[]> inputs, ArrayList<double[]> targets) throws IOException
+   {
+      double error = 0.0;
+      for (int i = 0; i < inputs.size(); i++)                                            // for each test case
+      {
+         double[] output = run(inputs.get(0));                                        // propagate to get the output
+         double singleError = 0.0;
+         for (int j = 0; j < output.length; j++)
+         {
+            singleError += (targets.get(i)[j] - output[j]) * (targets.get(i)[j] - output[j]);   // compare output with expected
+         }
+         error += (0.5 * singleError) * (0.5 * singleError);                              // sum this up for each case
+      }
+
+      return error;
+
    }
 
    /**
