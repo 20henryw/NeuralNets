@@ -357,12 +357,6 @@ public class Network
    {
       long startTime = System.currentTimeMillis();
       double[][][] newWeights = initializeJaggedArray();
-      double[][] theta = new double[activations.length][activations[0].length];
-      double diff;
-      double dotsJ;
-      double dotsK;
-      double sumI;
-      double dDotsK_sumI;
 
       for (int layer = 1; layer < numLayers; layer++)
       {

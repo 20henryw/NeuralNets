@@ -117,7 +117,7 @@ public class Minimizer
       String epochEndCondition = "";
       double[][][] bestWeights = new double[1][1][1];
 
-      System.out.println(network.getError(inputs, targets));
+      System.out.println("Starting Error: " + network.getError(inputs, targets));
 
 
       for (int i = 0; i < SUPER_EPOCHS; i++)
