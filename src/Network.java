@@ -16,6 +16,7 @@ import java.util.Random;
  *
  * Network()         - constructs a network object from user specified data
  * getWeights()      - returns the weights array
+ * setWeights()      - sets a weight array
  * run()             - calls propagate with specified inputs
  * propagate()       - calculates the activations of each layer, returning an array of the output layer's activations
  * outFunc()         - calculates the result of a specified function
@@ -40,7 +41,6 @@ public class Network
    private double[][][] weights; // [layer][from][to]
    private String FILES_PATH;
    private String INPUTS_PATH;
-   private String TRAINING_PATH;
 
    private boolean DEBUG = false;
 
@@ -241,8 +241,7 @@ public class Network
    }
 
    /**
-    * Randomly assigns starting weights from a Gaussian distribution.
-    * Idea to use a Gaussian was given by Chaitu.
+    * Randomly assigns starting weights between -0.1 and 0.1
     */
    public void randWeights()
    {
@@ -267,7 +266,6 @@ public class Network
     * Then, the system propagates with the new weights. If the new error is less, lambda, the learning rate will
     * double. If the new error is more, the weights will be reset to their previous values and lambda
     * will be divided by 2.
-    * Only works if there is one node in the final layer
     *
     */
    public String train(ArrayList<double[]> inputs, ArrayList<double[]> targets, double lambda, int MAX_EPOCHS,
@@ -295,7 +293,7 @@ public class Network
             prevError = getCaseError(inputs.get(i), targets.get(i));
 //            prevError = getChaituError(inputs, targets);
 
-            weights = optimizeWeights(run(inputs.get(i)), targets.get(i), lambdaFactor);
+            weights = optimizeWeights(targets.get(i), lambdaFactor);
 
             double newError = getCaseError(inputs.get(i), targets.get(i));
 //            double newError = getChaituError(inputs, targets);
@@ -345,56 +343,69 @@ public class Network
    /**
     * Method title inspired by Kyle Li.
     *
-    * Loops over the weights in the hidden layer and the input layer, calculates deltas,
-    * and adds them to the weight array.
+    * Returns a new weights[][][] array based on the error from the target values and the lambda change factor
+    *
+    * First propagates forward through the network, calculating the values of each activation while storing values
+    * that are reused later to change weights. Then, it propagates backwards through the activation layers, calculating
+    * deltas and storing important values for calculating deltas in earlier layers.
+    *
+    * The important values to keep track of are theta, omega, and psi. A full derivation of the math can be found in
+    * Design Document 3.
     * Iterator names follow the conventions in the Design Documents.
     *
-    * @param outputs
     * @param targets
     * @return
     */
-   private double[][][] optimizeWeights(double[] outputs, double[] targets, double lambdaFactor)
+   private double[][][] optimizeWeights(double[] targets, double lambdaFactor)
    {
       long startTime = System.currentTimeMillis();
       double[][][] newWeights = initializeJaggedArray();
+      int prevLayer;
+
+      // layer indices currently used for back prop
+      int inputLayer = 0;
+      int hiddenLayer = 1;
+      int finalLayer = 2;
 
       for (int layer = 1; layer < numLayers; layer++)
       {
+         prevLayer = layer - 1;
          for (int to = 0; to < activations[layer].length; to++)
          {
             theta[layer][to] = 0;
-            for (int from = 0; from < weights[layer - 1].length; from++)
+
+            for (int from = 0; from < weights[prevLayer].length; from++)
             {
-               theta[layer][to] += activations[layer - 1][from] * weights[layer - 1][from][to];
+               theta[layer][to] += activations[prevLayer][from] * weights[prevLayer][from][to];
             }
 
             activations[layer][to] = outFunc(theta[layer][to]);
          }
       }
 
-      for (int i = 0; i < activations[numLayers - 1].length; i++)
+      for (int i = 0; i < activations[finalLayer].length; i++)
       {
-         omega[numLayers - 1][i] = targets[i] - activations[numLayers - 1][i];
-         psi[numLayers - 1][i] = omega[numLayers - 1][i] * dOutFunc(theta[numLayers - 1][i]);
+         omega[finalLayer][i] = targets[i] - activations[finalLayer][i];
+         psi[finalLayer][i] = omega[finalLayer][i] * dOutFunc(theta[finalLayer][i]);
 
-         for (int j = 0; j < activations[numLayers - 2].length; j++)
+         for (int j = 0; j < activations[hiddenLayer].length; j++)
          {
-            newWeights[numLayers - 2][j][i] = weights[numLayers - 2][j][i] + lambdaFactor * activations[numLayers - 2][j] * psi[numLayers - 1][i];
+            newWeights[hiddenLayer][j][i] = weights[hiddenLayer][j][i] + lambdaFactor * activations[hiddenLayer][j] * psi[finalLayer][i];
          }
       }
 
-      for (int j = 0; j < activations[numLayers - 2].length; j++)
+      for (int j = 0; j < activations[hiddenLayer].length; j++)
       {
-         omega[numLayers - 2][j] = 0;
-         for (int I = 0; I < activations[numLayers - 1].length; I++)
+         omega[hiddenLayer][j] = 0;
+         for (int I = 0; I < activations[finalLayer].length; I++)
          {
-            omega[numLayers - 2][j] += psi[numLayers - 1][I] * weights[numLayers - 2][j][I];
+            omega[hiddenLayer][j] += psi[finalLayer][I] * weights[hiddenLayer][j][I];
          }
 
-         psi[numLayers - 2][j] = omega[numLayers - 2][j] * dOutFunc(theta[numLayers - 2][j]);
-         for (int k = 0; k < activations[numLayers - 3].length; k++)
+         psi[hiddenLayer][j] = omega[hiddenLayer][j] * dOutFunc(theta[hiddenLayer][j]);
+         for (int k = 0; k < activations[inputLayer].length; k++)
          {
-            newWeights[numLayers - 3][k][j] = weights[numLayers - 3][k][j] + lambdaFactor * activations[numLayers - 3][k] * psi[numLayers - 2][j];
+            newWeights[inputLayer][k][j] = weights[inputLayer][k][j] + lambdaFactor * activations[inputLayer][k] * psi[hiddenLayer][j];
          }
       }
 
@@ -448,6 +459,9 @@ public class Network
       return Math.sqrt(error);
    }
 
+   /**
+    * Calculates error the way Chaitu Ravuri would calculate error.
+    */
    public double getChaituError(ArrayList<double[]> inputs, ArrayList<double[]> targets) throws IOException
    {
       double error = 0.0;

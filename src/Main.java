@@ -29,16 +29,17 @@ public class Main
       }
 
       Network network = new Network(filepath);
+      Minimizer mini = new Minimizer(network);
+
+      mini.minimize();
+
 //      System.out.println("hi");
 //
 //      ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
 //      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/bmpTraining.csv");
 //      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
 
-      Minimizer mini = new Minimizer(network);
-      mini.minimize();
 //      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/chaituOut.bmp", network.getWeights());
-//            mini.minimize();
 //      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/minimizeOut.bmp", mini.minimize());
    }
 
