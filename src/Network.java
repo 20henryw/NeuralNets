@@ -233,7 +233,7 @@ public class Network
          }
       } else
       {  //user wants random input
-         randWeights();
+         randWeights(-1,1);
       }
 
 
@@ -243,7 +243,7 @@ public class Network
    /**
     * Randomly assigns starting weights between -0.1 and 0.1
     */
-   public void randWeights()
+   public void randWeights(double min, double max)
    {
       // numLayers -1 to avoid index out of bound errors, since you don't calculate weights from the output layer
       for (int layer = 0; layer < weights.length; layer++)
@@ -253,8 +253,9 @@ public class Network
             for (int to = 0; to < weights[layer][from].length; to++)
             {
 //               weights[layer][from][to] = new Random().nextGaussian();
-               weights[layer][from][to] = (Math.random() - 0.5) / 5;
+               weights[layer][from][to] = (Math.random() * (max - min)) + min;
 //               weights[layer][from][to] = (Math.random() * 2) - 1;
+//               weights[layer][from][to] = 0;
             }
          }
       }
@@ -290,10 +291,16 @@ public class Network
 
          for (int i = 0; i < targets.size(); i++)
          {
+            weights = optimizeWeights(inputs.get(i), targets.get(i), lambda);
+         }
+
+         /**
+         for (int i = 0; i < targets.size(); i++)
+         {
             prevError = getCaseError(inputs.get(i), targets.get(i));
 //            prevError = getChaituError(inputs, targets);
 
-            weights = optimizeWeights(targets.get(i), lambdaFactor);
+            weights = optimizeWeights(inputs.get(i), targets.get(i), lambda);
 
             double newError = getCaseError(inputs.get(i), targets.get(i));
 //            double newError = getChaituError(inputs, targets);
@@ -310,6 +317,7 @@ public class Network
             }
 
          }
+          */
 
          epochs++;
 
@@ -356,7 +364,7 @@ public class Network
     * @param targets
     * @return
     */
-   private double[][][] optimizeWeights(double[] targets, double lambdaFactor)
+   private double[][][] optimizeWeights(double[] inputs, double[] targets, double lambda)
    {
       long startTime = System.currentTimeMillis();
       double[][][] newWeights = initializeJaggedArray();
@@ -366,6 +374,11 @@ public class Network
       int inputLayer = 0;
       int hiddenLayer = 1;
       int finalLayer = 2;
+
+      for (int i = 0; i < inputs.length; i++)
+      {
+         activations[inputLayer][i] = inputs[i];
+      }
 
       for (int layer = 1; layer < numLayers; layer++)
       {
@@ -390,7 +403,7 @@ public class Network
 
          for (int j = 0; j < activations[hiddenLayer].length; j++)
          {
-            newWeights[hiddenLayer][j][i] = weights[hiddenLayer][j][i] + lambdaFactor * activations[hiddenLayer][j] * psi[finalLayer][i];
+            newWeights[hiddenLayer][j][i] = weights[hiddenLayer][j][i] + lambda * activations[hiddenLayer][j] * psi[finalLayer][i];
          }
       }
 
@@ -405,7 +418,7 @@ public class Network
          psi[hiddenLayer][j] = omega[hiddenLayer][j] * dOutFunc(theta[hiddenLayer][j]);
          for (int k = 0; k < activations[inputLayer].length; k++)
          {
-            newWeights[inputLayer][k][j] = weights[inputLayer][k][j] + lambdaFactor * activations[inputLayer][k] * psi[hiddenLayer][j];
+            newWeights[inputLayer][k][j] = weights[inputLayer][k][j] + lambda * activations[inputLayer][k] * psi[hiddenLayer][j];
          }
       }
 

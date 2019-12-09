@@ -24,8 +24,11 @@ public class Minimizer
    private double ERROR_THRESHOLD;
    private int SUPER_EPOCHS;
    private int NUM_PRINTS;
+   private static double MIN_WEIGHT;
+   private static double MAX_WEIGHT;
    private String CONSTANTS_PATH = "/Users/henry/Documents/2019-2020/NeuralNets/data/training/constants.csv";
    private String TRAINING_PATH;
+   private boolean ROLLBACK;
    ArrayList<double[]> inputs = new ArrayList<>();
    ArrayList<double[]> targets = new ArrayList<>();
    String[] values;
@@ -68,6 +71,12 @@ public class Minimizer
       NUM_PRINTS = Integer.parseInt(br.readLine());
       unusedLine = br.readLine();
       TRAINING_PATH = br.readLine();
+      unusedLine = br.readLine();
+      String weights = br.readLine();
+
+      String[] values = weights.split(",");
+      MIN_WEIGHT = Double.parseDouble(values[0]);
+      MAX_WEIGHT = Double.parseDouble(values[1]);
 
       br = new BufferedReader(new FileReader(new File(TRAINING_PATH)));
 
@@ -122,7 +131,7 @@ public class Minimizer
 
       for (int i = 0; i < SUPER_EPOCHS; i++)
       {
-         network.randWeights();
+         network.randWeights(MIN_WEIGHT, MAX_WEIGHT);
          epochEndCondition = network.train(inputs, targets, lambda, MAX_EPOCHS, lambdaFactor, MIN_LAMBDA, ERROR_THRESHOLD, NUM_PRINTS);
          System.out.println("\n" + epochEndCondition);
          epochError = network.getError(inputs, targets);

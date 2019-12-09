@@ -31,7 +31,10 @@ public class Main
       Network network = new Network(filepath);
       Minimizer mini = new Minimizer(network);
 
+      System.out.println(Arrays.deepToString(network.getWeights()));
+
       mini.minimize();
+      System.out.println(Arrays.deepToString(network.getWeights()));
 
 //      System.out.println("hi");
 //
