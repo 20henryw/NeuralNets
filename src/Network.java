@@ -118,7 +118,7 @@ public class Network
       {
          for (int to = 0; to < activations[layer].length; to++)
          {
-            double netInput = 0;
+            double netInput = 0.0;
             if (DEBUG) System.out.print("DEBUG: a[" + layer + "][" + to + "] = f(");
 
             for (int from = 0; from < weights[layer - 1].length; from++)
@@ -241,7 +241,7 @@ public class Network
    }
 
    /**
-    * Randomly assigns starting weights between -0.1 and 0.1
+    * Randomly assigns starting weights between min and max
     */
    public void randWeights(double min, double max)
    {
@@ -253,12 +253,23 @@ public class Network
             for (int to = 0; to < weights[layer][from].length; to++)
             {
 //               weights[layer][from][to] = new Random().nextGaussian();
-               weights[layer][from][to] = (Math.random() * (max - min)) + min;
+               weights[layer][from][to] = uniformRandom(min, max);
 //               weights[layer][from][to] = (Math.random() * 2) - 1;
 //               weights[layer][from][to] = 0;
             }
          }
       }
+   }
+
+   /**
+    * Method name inspired by Chaitu Ravuri
+    *
+    * Calculates a random number between min and max
+    * Generated values have a uniform distribution
+    */
+   public double uniformRandom(double min, double max)
+   {
+      return (Math.random() * (max - min)) + min;
    }
 
    /**
@@ -275,7 +286,7 @@ public class Network
       int endCondition = 0;
       String endString = "";
       double[][][] prevWeights = initializeJaggedArray();
-      double prevError = 0;
+      double prevError = 0.0;
       int epochs = 0;
       int printFactor = MAX_EPOCHS / NUM_PRINTS;
       int lastShift = 0;
@@ -371,13 +382,11 @@ public class Network
       int prevLayer;
 
       // layer indices currently used for back prop
-      int inputLayer = 0;
-      int hiddenLayer = 1;
-      int finalLayer = 2;
+      int finalLayer = numLayers - 1;
 
       for (int i = 0; i < inputs.length; i++)
       {
-         activations[inputLayer][i] = inputs[i];
+         activations[0][i] = inputs[i];
       }
 
       for (int layer = 1; layer < numLayers; layer++)
@@ -396,30 +405,35 @@ public class Network
          }
       }
 
+      int secToLastLayer = numLayers - 2;
       for (int i = 0; i < activations[finalLayer].length; i++)
       {
          omega[finalLayer][i] = targets[i] - activations[finalLayer][i];
          psi[finalLayer][i] = omega[finalLayer][i] * dOutFunc(theta[finalLayer][i]);
 
-         for (int j = 0; j < activations[hiddenLayer].length; j++)
+         for (int j = 0; j < activations[secToLastLayer].length; j++)
          {
-            newWeights[hiddenLayer][j][i] = weights[hiddenLayer][j][i] + lambda * activations[hiddenLayer][j] * psi[finalLayer][i];
+            newWeights[secToLastLayer][j][i] = weights[secToLastLayer][j][i] + lambda * activations[secToLastLayer][j] * psi[finalLayer][i];
          }
       }
 
-      for (int j = 0; j < activations[hiddenLayer].length; j++)
+      for (int n = numLayers - 2; n > 0; n--)
       {
-         omega[hiddenLayer][j] = 0;
-         for (int I = 0; I < activations[finalLayer].length; I++)
+         for (int j = 0; j < activations[n].length; j++)
          {
-            omega[hiddenLayer][j] += psi[finalLayer][I] * weights[hiddenLayer][j][I];
+            omega[n][j] = 0;
+            for (int I = 0; I < activations[n + 1].length; I++)
+            {
+               omega[n][j] += psi[n + 1][I] * weights[n][j][I];
+            }
+
+            psi[n][j] = omega[n][j] * dOutFunc(theta[n][j]);
+            for (int k = 0; k < activations[n - 1].length; k++)
+            {
+               newWeights[n - 1][k][j] = weights[n - 1][k][j] + lambda * activations[n - 1][k] * psi[n][j];
+            }
          }
 
-         psi[hiddenLayer][j] = omega[hiddenLayer][j] * dOutFunc(theta[hiddenLayer][j]);
-         for (int k = 0; k < activations[inputLayer].length; k++)
-         {
-            newWeights[inputLayer][k][j] = weights[inputLayer][k][j] + lambda * activations[inputLayer][k] * psi[hiddenLayer][j];
-         }
       }
 
       return newWeights;
