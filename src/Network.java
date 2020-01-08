@@ -302,33 +302,8 @@ public class Network
 
          for (int i = 0; i < targets.size(); i++)
          {
-            weights = optimizeWeights(inputs.get(i), targets.get(i), lambda);
+            optimizeWeights(inputs.get(i), targets.get(i), lambda);
          }
-
-         /**
-         for (int i = 0; i < targets.size(); i++)
-         {
-            prevError = getCaseError(inputs.get(i), targets.get(i));
-//            prevError = getChaituError(inputs, targets);
-
-            weights = optimizeWeights(inputs.get(i), targets.get(i), lambda);
-
-            double newError = getCaseError(inputs.get(i), targets.get(i));
-//            double newError = getChaituError(inputs, targets);
-            if (newError < prevError)
-            {
-               lastShift = epochs;
-               lambda *= lambdaFactor;
-               prevError = newError;
-               prevWeights = weights;
-            } else
-            {
-               weights = prevWeights;
-               lambda /= lambdaFactor;
-            }
-
-         }
-          */
 
          epochs++;
 
@@ -375,10 +350,9 @@ public class Network
     * @param targets
     * @return
     */
-   private double[][][] optimizeWeights(double[] inputs, double[] targets, double lambda)
+   private void optimizeWeights(double[] inputs, double[] targets, double lambda)
    {
       long startTime = System.currentTimeMillis();
-      double[][][] newWeights = initializeJaggedArray();
       int prevLayer;
 
       // layer indices currently used for back prop
@@ -389,6 +363,7 @@ public class Network
          activations[0][i] = inputs[i];
       }
 
+      // propagate through network
       for (int layer = 1; layer < numLayers; layer++)
       {
          prevLayer = layer - 1;
@@ -403,20 +378,16 @@ public class Network
 
             activations[layer][to] = outFunc(theta[layer][to]);
          }
-      }
+      } // propagate through network
 
       int secToLastLayer = numLayers - 2;
       for (int i = 0; i < activations[finalLayer].length; i++)
       {
          omega[finalLayer][i] = targets[i] - activations[finalLayer][i];
          psi[finalLayer][i] = omega[finalLayer][i] * dOutFunc(theta[finalLayer][i]);
-
-         for (int j = 0; j < activations[secToLastLayer].length; j++)
-         {
-            newWeights[secToLastLayer][j][i] = weights[secToLastLayer][j][i] + lambda * activations[secToLastLayer][j] * psi[finalLayer][i];
-         }
       }
 
+      // go backwards through the network and calculate new weights
       for (int n = numLayers - 2; n > 0; n--)
       {
          for (int j = 0; j < activations[n].length; j++)
@@ -428,15 +399,21 @@ public class Network
             }
 
             psi[n][j] = omega[n][j] * dOutFunc(theta[n][j]);
-            for (int k = 0; k < activations[n - 1].length; k++)
+
+            for (int i = 0; i < activations[n + 1].length; i++)
             {
-               newWeights[n - 1][k][j] = weights[n - 1][k][j] + lambda * activations[n - 1][k] * psi[n][j];
+               weights[n][j][i] += lambda * activations[n][j] * psi[n + 1][i];
             }
          }
+      } // go backwards through the network and calculate new weights
 
+      for (int j = 0; j < layers[1]; j++)
+      {
+         for (int k = 0; k < layers[0]; k++)
+         {
+            weights[0][k][j] += lambda * activations[0][k] * psi[1][j];
+         }
       }
-
-      return newWeights;
    }
 
    /**
