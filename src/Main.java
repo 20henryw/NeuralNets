@@ -32,15 +32,16 @@ public class Main
       Minimizer mini = new Minimizer(network);
 
       System.out.println(Arrays.deepToString(network.getWeights()));
-
+//
       mini.minimize();
       System.out.println(Arrays.deepToString(network.getWeights()));
 
 //      System.out.println("hi");
 //
-//      ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/test1.bmp");
-//      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/bmpTraining.csv");
-//      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/test2.bmp");
+//      ImageWrapper wrapper = new ImageWrapper( "/Users/henry/Documents/2019-2020/NeuralNets/data/training/hand/henry5.bmp");
+//      wrapper.toGrayscale();
+//      wrapper.createTrainingFile("/Users/henry/Documents/2019-2020/NeuralNets/data/training/1Training.csv");
+//      wrapper.toBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/hand/gray5.bmp");
 
 //      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/chaituOut.bmp", network.getWeights());
 //      mini.toTestBMP("/Users/henry/Documents/2019-2020/NeuralNets/data/training/minimizeOut.bmp", mini.minimize());

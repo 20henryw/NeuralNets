@@ -30,6 +30,18 @@ public class ImageWrapper
       System.out.printf("%08x ", max);
    }
 
+   public void toGrayscale()
+   {
+      for (int i = 0; i < imageArray.length; i++)
+      {
+         for (int j = 0; j < imageArray[i].length; j++)
+         {
+            imageArray[i][j] = DibDump.colorToGrayscale(imageArray[i][j]);
+         }
+      }
+
+   }
+
    public void toBMP(String outFileName)
    {
       DibDump.imageArrayToBMP(imageArray, outFileName);

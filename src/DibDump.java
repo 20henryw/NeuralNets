@@ -186,7 +186,7 @@ public class DibDump
  * Method pelToRGB accepts an integer (32 bit) picture element and returns the red, green and blue colors
  * as an RgbQuad object. See rgbToPel(int red, int green, int blue) to go the the other way. 
  */
-   public RgbQuad pelToRGB(int pel)
+   public static RgbQuad pelToRGB(int pel)
       {
       RgbQuad rgb = new RgbQuad();
 
@@ -203,7 +203,7 @@ public class DibDump
  * The rgbToPel method takes red, green and blue color values and returns a single 32-bit integer color.
  * See pelToRGB(int pel) to go the other way.
  */
-   public int rgbToPel(int red, int green, int blue)
+   public static int rgbToPel(int red, int green, int blue)
       {
       return (red << 16) | (green << 8) | blue;
       }
@@ -212,7 +212,7 @@ public class DibDump
  * Y = 0.3RED+0.59GREEN+0.11Blue
  * The colorToGrayscale method takes a color picture element (pel) and returns the gray scale pel using just one of may possible formulas
  */
-   public int colorToGrayscale(int pel)
+   public static int colorToGrayscale(int pel)
       {
       RgbQuad rgb = pelToRGB(pel);
     

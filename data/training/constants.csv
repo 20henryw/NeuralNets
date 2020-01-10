@@ -1,7 +1,7 @@
 INITIAL LAMBDA
-5
+1
 MAX EPOCHS
-10000
+500
 LAMBDA CHANGE FACTOR
 1
 MIN LAMBDA
@@ -11,8 +11,8 @@ ERROR THRESHOLD
 SUPER EPOCHS
 1
 NUM PRINTS
-1
+10
 TRAINING FILE PATH
-/Users/henry/Documents/2019-2020/NeuralNets/data/training/multiTraining.csv
+/Users/henry/Documents/2019-2020/NeuralNets/data/training/handTraining.csv
 WEIGHT RANGE
 -2,2

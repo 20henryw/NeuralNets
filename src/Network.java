@@ -293,11 +293,10 @@ public class Network
 
       while (endCondition == 0)
       {
-         prevWeights = weights;
 
          if((epochs % printFactor) == 0)
          {
-            System.out.println("Epoch " + epochs + ": " + prevError);
+            System.out.println("Epoch " + epochs + ": " + getError(inputs,targets));
          }
 
          for (int i = 0; i < targets.size(); i++)
